@@ -4,12 +4,11 @@
  */
 package com.mycompany.education;
 
-/**
- *
- * @author mateu
- */
+import com.mycompany.education.view.TelaInicial;
+
 public class Main {
     public static void main(String args[]){
-        System.out.println("Hello World");
+        TelaInicial tela = new TelaInicial();
+        tela.setVisible(true);
     }
 }
