@@ -1,7 +1,11 @@
 package com.mycompany.education.view;
 
 import javax.swing.*;
+
+import com.mycompany.education.utils.ValidateData;
+
 import java.awt.*;
+import java.util.Map;
 
 public class TelaCadastro extends JPanel {
 
@@ -35,10 +39,30 @@ public class TelaCadastro extends JPanel {
         JButton buttonVoltar = new JButton("Voltar");
 
         buttonVoltar.addActionListener(evt -> {
-            Container parent = getParent();
-            if (parent != null && parent.getLayout() instanceof CardLayout) {
-                CardLayout cl = (CardLayout) parent.getLayout();
-                cl.show(parent, "Tela Inicial");
+            voltarParaTelaInicial();
+        });
+
+        buttonSalvar.addActionListener(evt -> {
+            Map<String, String> validationErrors = ValidateData.validateFields(nomeField, sobrenomeField, emailField,
+                    dataNascimentoField, cpfField, senhaField, confirmacaoSenhaField);
+            if (validationErrors.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
+        
+                nomeField.setText("");
+                sobrenomeField.setText("");
+                emailField.setText("");
+                dataNascimentoField.setText("");
+                cpfField.setText("");
+                senhaField.setText("");
+                confirmacaoSenhaField.setText("");
+                voltarParaTelaInicial();
+            } else {
+                StringBuilder errorMessage = new StringBuilder("Erro ao salvar cadastro:\n");
+                for (String message : validationErrors.values()) {
+                    errorMessage.append(message).append("\n");
+                }
+                JOptionPane.showMessageDialog(this, errorMessage.toString(), "Erro de Validação",
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -103,5 +127,13 @@ public class TelaCadastro extends JPanel {
 
         gbc.gridx = 1;
         add(buttonVoltar, gbc);
+    }
+
+    private void voltarParaTelaInicial() {
+        Container parent = getParent();
+        if (parent != null && parent.getLayout() instanceof CardLayout) {
+            CardLayout cl = (CardLayout) parent.getLayout();
+            cl.show(parent, "Tela Inicial");
+        }
     }
 }
