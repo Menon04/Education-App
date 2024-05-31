@@ -1,4 +1,4 @@
-package com.mycompany.education.view;
+package com.mycompany.education.views;
 
 import javax.swing.*;
 import java.awt.*;

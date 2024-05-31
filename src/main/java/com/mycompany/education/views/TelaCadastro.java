@@ -1,14 +1,14 @@
-package com.mycompany.education.view;
+package com.mycompany.education.views;
 
 import javax.swing.*;
 
+import com.mycompany.education.controllers.CadastroController;
 import com.mycompany.education.utils.ValidateData;
 
 import java.awt.*;
 import java.util.Map;
 
 public class TelaCadastro extends JPanel {
-
     public TelaCadastro() {
         initComponents();
     }
@@ -46,15 +46,9 @@ public class TelaCadastro extends JPanel {
             Map<String, String> validationErrors = ValidateData.validateFields(nomeField, sobrenomeField, emailField,
                     dataNascimentoField, cpfField, senhaField, confirmacaoSenhaField);
             if (validationErrors.isEmpty()) {
+                CadastroController.salvarCadastro(nomeField.getText(), sobrenomeField.getText(), emailField.getText(), dataNascimentoField.getText(), cpfField.getText(), new String(senhaField.getPassword()));
                 JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
-        
-                nomeField.setText("");
-                sobrenomeField.setText("");
-                emailField.setText("");
-                dataNascimentoField.setText("");
-                cpfField.setText("");
-                senhaField.setText("");
-                confirmacaoSenhaField.setText("");
+                limparCampos();
                 voltarParaTelaInicial();
             } else {
                 StringBuilder errorMessage = new StringBuilder("Erro ao salvar cadastro:\n");
@@ -134,6 +128,19 @@ public class TelaCadastro extends JPanel {
         if (parent != null && parent.getLayout() instanceof CardLayout) {
             CardLayout cl = (CardLayout) parent.getLayout();
             cl.show(parent, "Tela Inicial");
+        }
+    }
+
+    private void limparCampos() {
+        Component[] components = getComponents();
+        for (Component component : components) {
+            if (component instanceof JTextField) {
+                JTextField textField = (JTextField) component;
+                textField.setText("");
+            } else if (component instanceof JPasswordField) {
+                JPasswordField passwordField = (JPasswordField) component;
+                passwordField.setText("");
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.mycompany.education;
 
-import com.mycompany.education.view.TelaInicial;
+import com.mycompany.education.views.TelaInicial;
 
 public class Main {
     public static void main(String args[]){
