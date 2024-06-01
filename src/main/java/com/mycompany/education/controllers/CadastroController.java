@@ -2,6 +2,7 @@ package com.mycompany.education.controllers;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,9 @@ public class CadastroController {
 
     JSONObject cadastroJSON = new JSONObject(cadastroMap);
 
-    try (FileWriter file = new FileWriter("cadastro.json")) {
+    String path = Paths.get("src", "main", "java", "com", "mycompany", "education", "api", "cadastro.json").toString();
+
+    try (FileWriter file = new FileWriter(path)) {
       file.write(cadastroJSON.toJSONString());
     } catch (IOException e) {
       throw new RuntimeException("Erro ao salvar cadastro", e);
