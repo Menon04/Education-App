@@ -21,17 +21,14 @@ public class AlunoDAO implements GenericDAO<Aluno, Long> {
       stmt.setString(5, aluno.cpf());
       stmt.setString(6, aluno.senha());
       stmt.executeUpdate();
-
-      ResultSet generatedKeys = stmt.getGeneratedKeys();
-      if (generatedKeys.next()) {
-        Long id = generatedKeys.getLong(1);
-        aluno = new Aluno(id, aluno.nome(), aluno.sobrenome(), aluno.email(), aluno.dataNascimento(), aluno.cpf(),
-            aluno.senha());
-      } else {
-        throw new SQLException("Falha ao obter o ID gerado para Aluno.");
-      }
     } catch (SQLException e) {
-      throw new RuntimeException("Erro ao criar Aluno: " + e.getMessage(), e);
+      if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("email")) {
+        throw new RuntimeException("Email já cadastrado!");
+      } else if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("cpf")) {
+        throw new RuntimeException("CPF já cadastrado!");
+      } else {
+        throw new RuntimeException("Erro ao criar Aluno: " + e.getMessage(), e);
+      }
     }
   }
 

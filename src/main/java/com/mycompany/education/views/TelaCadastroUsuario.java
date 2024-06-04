@@ -132,14 +132,19 @@ public class TelaCadastroUsuario extends JPanel {
 
     private void salvarCadastroUsuario() {
         Map<String, String> validationErrors = ValidateData.validateFields(nomeField, sobrenomeField, emailField,
-        dataNascimentoField, cpfField, senhaField, confirmacaoSenhaField);
+                dataNascimentoField, cpfField, senhaField, confirmacaoSenhaField);
 
         if (validationErrors.isEmpty()) {
             Usuario usuario = criarUsuario();
-            CadastroController.salvarCadastroUsuario(usuario);
-            JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
-            limparCampos();
-            voltarParaTelaInicial();
+            try {
+                CadastroController.salvarCadastroUsuario(usuario);
+                JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
+                limparCampos();
+                voltarParaTelaInicial();
+            } catch (RuntimeException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao salvar cadastro",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         } else {
             mostrarErrosDeValidacao(validationErrors);
         }
@@ -147,7 +152,8 @@ public class TelaCadastroUsuario extends JPanel {
 
     private Usuario criarUsuario() {
         String tipoUsuario = (String) tipoUsuarioComboBox.getSelectedItem();
-        LocalDate dataNascimento = LocalDate.parse(dataNascimentoField.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        LocalDate dataNascimento = LocalDate.parse(dataNascimentoField.getText(),
+                DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         String nome = nomeField.getText();
         String sobrenome = sobrenomeField.getText();
         String email = emailField.getText();
