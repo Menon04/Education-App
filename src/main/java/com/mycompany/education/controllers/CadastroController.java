@@ -10,12 +10,10 @@ public class CadastroController {
 
   public static void salvarCadastroUsuario(Usuario usuario) {
     try {
-      if (usuario instanceof Aluno) {
-        Aluno aluno = (Aluno) usuario;
+      if (usuario instanceof Aluno aluno) {
         AlunoDAO alunoDAO = new AlunoDAO();
         alunoDAO.create(aluno);
-      } else if (usuario instanceof Professor) {
-        Professor professor = (Professor) usuario;
+      } else if (usuario instanceof Professor professor) {
         ProfessorDAO professorDAO = new ProfessorDAO();
         professorDAO.create(professor);
       }

@@ -3,8 +3,8 @@ package com.mycompany.education.views;
 import javax.swing.*;
 
 import com.mycompany.education.controllers.CadastroController;
-import com.mycompany.education.models.Aluno;
-import com.mycompany.education.models.Professor;
+import com.mycompany.education.factories.UsuarioFactory;
+import com.mycompany.education.factories.UsuarioFactoryProvider;
 import com.mycompany.education.models.Usuario;
 import com.mycompany.education.utils.HashPassword;
 import com.mycompany.education.utils.ValidateData;
@@ -134,36 +134,32 @@ public class TelaCadastroUsuario extends JPanel {
         Map<String, String> validationErrors = ValidateData.validateFields(nomeField, sobrenomeField, emailField,
                 dataNascimentoField, cpfField, senhaField, confirmacaoSenhaField);
 
-        if (validationErrors.isEmpty()) {
-            Usuario usuario = criarUsuario();
-            try {
-                CadastroController.salvarCadastroUsuario(usuario);
-                JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
-                limparCampos();
-                voltarParaTelaInicial();
-            } catch (RuntimeException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao salvar cadastro",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
+        if (!validationErrors.isEmpty()) {
             mostrarErrosDeValidacao(validationErrors);
+            return;
         }
-    }
 
-    private Usuario criarUsuario() {
-        String tipoUsuario = (String) tipoUsuarioComboBox.getSelectedItem();
-        LocalDate dataNascimento = LocalDate.parse(dataNascimentoField.getText(),
-                DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        String nome = nomeField.getText();
-        String sobrenome = sobrenomeField.getText();
-        String email = emailField.getText();
-        String cpf = cpfField.getText();
-        String hashedSenha = HashPassword.hashPassword(new String(senhaField.getPassword()));
+        try {
+            String tipoUsuario = (String) tipoUsuarioComboBox.getSelectedItem();
+            String nome = nomeField.getText();
+            String sobrenome = sobrenomeField.getText();
+            String email = emailField.getText();
+            String dataNascimentoStr = dataNascimentoField.getText();
+            LocalDate dataNascimento = LocalDate.parse(dataNascimentoStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String cpf = cpfField.getText();
+            String senha = new String(senhaField.getPassword());
 
-        if ("Aluno".equals(tipoUsuario)) {
-            return new Aluno(null, nome, sobrenome, email, dataNascimento, cpf, hashedSenha);
-        } else {
-            return new Professor(null, nome, sobrenome, email, dataNascimento, cpf, hashedSenha);
+            String hashedSenha = HashPassword.hashPassword(senha);
+
+            UsuarioFactory usuarioFactory = UsuarioFactoryProvider.getFactory(tipoUsuario);
+            Usuario usuario = usuarioFactory.criarUsuario(nome, sobrenome, email, dataNascimento, cpf, hashedSenha);
+
+            CadastroController.salvarCadastroUsuario(usuario);
+            JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
+            limparCampos();
+            voltarParaTelaInicial();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao salvar cadastro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
