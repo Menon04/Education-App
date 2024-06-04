@@ -17,7 +17,7 @@ public class TelaInicial extends JFrame {
         mainPanel = new JPanel(cardLayout);
 
         JPanel inicialPanel = createInicialPanel();
-        TelaCadastro cadastroPanel = new TelaCadastro();
+        TelaCadastroUsuario cadastroPanel = new TelaCadastroUsuario();
 
         mainPanel.add(inicialPanel, "Tela Inicial");
         mainPanel.add(cadastroPanel, "Tela de Cadastro");

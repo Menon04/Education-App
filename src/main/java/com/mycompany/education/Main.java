@@ -1,5 +1,7 @@
 package com.mycompany.education;
 
+import javax.swing.JOptionPane;
+
 import com.mycompany.education.connection.MySQLConnection;
 import com.mycompany.education.views.TelaInicial;
 
@@ -8,7 +10,11 @@ public class Main {
         try {
             MySQLConnection.getInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao conectar com o banco de dados: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, 
+                "Erro ao conectar com o banco de dados: " + e.getMessage(), 
+                "Erro de Conexão", 
+                JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
         }
         
         TelaInicial tela = new TelaInicial();
