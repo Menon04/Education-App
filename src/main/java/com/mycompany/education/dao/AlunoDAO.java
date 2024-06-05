@@ -11,24 +11,36 @@ public class AlunoDAO implements GenericDAO<Aluno, Long> {
 
   @Override
   public void create(Aluno aluno) {
-    String sql = "INSERT INTO Aluno (nome, sobrenome, email, data_nascimento, cpf, senha) VALUES (?, ?, ?, ?, ?, ?)";
+    String alunoSql = "INSERT INTO aluno (nome, sobrenome, email, data_nascimento, cpf, senha) VALUES (?, ?, ?, ?, ?, ?)";
+    String usuarioSql = "INSERT INTO usuario (email, senha, aluno_id) VALUES (?, ?, ?)";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-      stmt.setString(1, aluno.nome());
-      stmt.setString(2, aluno.sobrenome());
-      stmt.setString(3, aluno.email());
-      stmt.setDate(4, Date.valueOf(aluno.dataNascimento()));
-      stmt.setString(5, aluno.cpf());
-      stmt.setString(6, aluno.senha());
-      stmt.executeUpdate();
-    } catch (SQLException e) {
-      if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("email")) {
-        throw new RuntimeException("Email já cadastrado!");
-      } else if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("cpf")) {
-        throw new RuntimeException("CPF já cadastrado!");
+        PreparedStatement alunoStmt = conn.prepareStatement(alunoSql, Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement usuarioStmt = conn.prepareStatement(usuarioSql)) {
+
+      conn.setAutoCommit(false);
+
+      alunoStmt.setString(1, aluno.nome());
+      alunoStmt.setString(2, aluno.sobrenome());
+      alunoStmt.setString(3, aluno.email());
+      alunoStmt.setDate(4, Date.valueOf(aluno.dataNascimento()));
+      alunoStmt.setString(5, aluno.cpf());
+      alunoStmt.setString(6, aluno.senha());
+      alunoStmt.executeUpdate();
+
+      ResultSet generatedKeys = alunoStmt.getGeneratedKeys();
+      if (generatedKeys.next()) {
+        long alunoId = generatedKeys.getLong(1);
+        usuarioStmt.setString(1, aluno.email());
+        usuarioStmt.setString(2, aluno.senha());
+        usuarioStmt.setLong(3, alunoId);
+        usuarioStmt.executeUpdate();
+        conn.commit();
       } else {
-        throw new RuntimeException("Erro ao criar Aluno: " + e.getMessage(), e);
+        conn.rollback();
+        throw new SQLException("Falha ao obter o ID do aluno inserido.");
       }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao criar Aluno e Usuário: " + e.getMessage(), e);
     }
   }
 

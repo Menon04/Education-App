@@ -8,27 +8,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProfessorDAO implements GenericDAO<Professor, Long> {
-
   @Override
   public void create(Professor professor) {
-    String sql = "INSERT INTO Professor (nome, sobrenome, email, data_nascimento, cpf, senha) VALUES (?, ?, ?, ?, ?, ?)";
+    String professorSql = "INSERT INTO professor (nome, sobrenome, email, data_nascimento, cpf, senha) VALUES (?, ?, ?, ?, ?, ?)";
+    String usuarioSql = "INSERT INTO usuario (email, senha, professor_id) VALUES (?, ?, ?)";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-      stmt.setString(1, professor.nome());
-      stmt.setString(2, professor.sobrenome());
-      stmt.setString(3, professor.email());
-      stmt.setDate(4, Date.valueOf(professor.dataNascimento()));
-      stmt.setString(5, professor.cpf());
-      stmt.setString(6, professor.senha());
-      stmt.executeUpdate();
-    } catch (SQLException e) {
-      if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("email")) {
-        throw new RuntimeException("Email já cadastrado!");
-      } else if (e.getMessage().contains("Duplicate entry") && e.getMessage().contains("cpf")) {
-        throw new RuntimeException("CPF já cadastrado!");
+        PreparedStatement professorStmt = conn.prepareStatement(professorSql, Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement usuarioStmt = conn.prepareStatement(usuarioSql)) {
+
+      conn.setAutoCommit(false); 
+
+      professorStmt.setString(1, professor.nome());
+      professorStmt.setString(2, professor.sobrenome());
+      professorStmt.setString(3, professor.email());
+      professorStmt.setDate(4, Date.valueOf(professor.dataNascimento()));
+      professorStmt.setString(5, professor.cpf());
+      professorStmt.setString(6, professor.senha());
+      professorStmt.executeUpdate();
+
+      ResultSet generatedKeys = professorStmt.getGeneratedKeys();
+      if (generatedKeys.next()) {
+        long professorId = generatedKeys.getLong(1);
+        usuarioStmt.setString(1, professor.email());
+        usuarioStmt.setString(2, professor.senha());
+        usuarioStmt.setLong(3, professorId);
+        usuarioStmt.executeUpdate();
+        conn.commit(); 
       } else {
-        throw new RuntimeException("Erro ao criar Professor: " + e.getMessage(), e);
+        conn.rollback();
+        throw new SQLException("Falha ao obter o ID do professor inserido.");
       }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao criar Professor e Usuário: " + e.getMessage(), e);
     }
   }
 

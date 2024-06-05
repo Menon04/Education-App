@@ -147,12 +147,10 @@ public class TelaCadastroUsuario extends JPanel {
             String dataNascimentoStr = dataNascimentoField.getText();
             LocalDate dataNascimento = LocalDate.parse(dataNascimentoStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             String cpf = cpfField.getText();
-            String senha = new String(senhaField.getPassword());
-
-            String hashedSenha = HashPassword.hashPassword(senha);
+            String senha = HashPassword.hashPassword(new String(senhaField.getPassword()));
 
             UsuarioFactory usuarioFactory = UsuarioFactoryProvider.getFactory(tipoUsuario);
-            Usuario usuario = usuarioFactory.criarUsuario(nome, sobrenome, email, dataNascimento, cpf, hashedSenha);
+            Usuario usuario = usuarioFactory.criarUsuario(nome, sobrenome, email, dataNascimento, cpf, senha);
 
             CadastroController.salvarCadastroUsuario(usuario);
             JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
