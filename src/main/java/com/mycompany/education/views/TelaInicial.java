@@ -1,6 +1,7 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.controllers.LoginController;
+import com.mycompany.education.exceptions.LoginException;
+import com.mycompany.education.services.LoginService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,11 +23,9 @@ public class TelaInicial extends JFrame {
 
         JPanel inicialPanel = createInicialPanel();
         TelaCadastroUsuario cadastroPanel = new TelaCadastroUsuario();
-        // TelaDashboard dashboardPanel = new TelaDashboard();
 
         mainPanel.add(inicialPanel, "Tela Inicial");
         mainPanel.add(cadastroPanel, "Tela de Cadastro");
-        // mainPanel.add(dashboardPanel, "Tela de Dashboard");
 
         add(mainPanel);
 
@@ -40,14 +39,14 @@ public class TelaInicial extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); 
+        gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel label = new JLabel("Tela Inicial", SwingConstants.CENTER);
         JLabel emailLabel = new JLabel("Email:");
-        inputEmail = new JTextField(20); 
+        inputEmail = new JTextField(20);
         JLabel passwordLabel = new JLabel("Senha:");
-        inputPassword = new JPasswordField(20); 
+        inputPassword = new JPasswordField(20);
         JButton buttonLogin = new JButton("Login");
         JButton buttonCadastrar = new JButton("Cadastrar");
 
@@ -85,14 +84,28 @@ public class TelaInicial extends JFrame {
 
     private void handleLogin() {
         String email = inputEmail.getText();
-        String password = new String(inputPassword.getPassword()); 
+        String password = new String(inputPassword.getPassword());
 
-        if (LoginController.validateLogin(email, password)) {
-            JOptionPane.showMessageDialog(this, "Login efetuado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            // cardLayout.show(mainPanel, "Tela de Dashboard");
-        } else {
-            JOptionPane.showMessageDialog(this, "Email ou senha inválidos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
+        try {
+            String userType = LoginService.searchUser(email, password);
+            if (userType != null) {
+                JOptionPane.showMessageDialog(this, "Login efetuado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                navigateToDashboard(userType);
+            } else {
+                JOptionPane.showMessageDialog(this, "Email ou senha inválidos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (LoginException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Erro de Login", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void navigateToDashboard(String userType) {
+        if ("Aluno".equals(userType)) {
+            new AlunoDashBoard().setVisible(true);
+        } else if ("Professor".equals(userType)) {
+            new ProfessorDashBoard().setVisible(true);
+        }
+        this.dispose();
     }
 
     public static void main(String args[]) {

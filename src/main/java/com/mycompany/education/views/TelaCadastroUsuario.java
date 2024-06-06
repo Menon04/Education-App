@@ -2,10 +2,10 @@ package com.mycompany.education.views;
 
 import javax.swing.*;
 
-import com.mycompany.education.controllers.CadastroController;
 import com.mycompany.education.factories.UsuarioFactory;
 import com.mycompany.education.factories.UsuarioFactoryProvider;
 import com.mycompany.education.models.Usuario;
+import com.mycompany.education.services.CadastroService;
 import com.mycompany.education.utils.HashPassword;
 import com.mycompany.education.utils.ValidateData;
 
@@ -152,7 +152,7 @@ public class TelaCadastroUsuario extends JPanel {
             UsuarioFactory usuarioFactory = UsuarioFactoryProvider.getFactory(tipoUsuario);
             Usuario usuario = usuarioFactory.criarUsuario(nome, sobrenome, email, dataNascimento, cpf, senha);
 
-            CadastroController.salvarCadastroUsuario(usuario);
+            CadastroService.insertUser(usuario);
             JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
             limparCampos();
             voltarParaTelaInicial();

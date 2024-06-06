@@ -1,4 +1,4 @@
-package com.mycompany.education.controllers;
+package com.mycompany.education.services;
 
 import com.mycompany.education.dao.AlunoDAO;
 import com.mycompany.education.dao.ProfessorDAO;
@@ -6,9 +6,8 @@ import com.mycompany.education.models.Aluno;
 import com.mycompany.education.models.Professor;
 import com.mycompany.education.models.Usuario;
 
-public class CadastroController {
-
-  public static void salvarCadastroUsuario(Usuario usuario) {
+public class CadastroService {
+  public static void insertUser(Usuario usuario) {
     try {
       if (usuario instanceof Aluno aluno) {
         AlunoDAO alunoDAO = new AlunoDAO();
