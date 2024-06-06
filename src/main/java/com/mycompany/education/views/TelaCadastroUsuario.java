@@ -150,7 +150,7 @@ public class TelaCadastroUsuario extends JPanel {
             String senha = HashPassword.hashPassword(new String(senhaField.getPassword()));
 
             UsuarioFactory usuarioFactory = UsuarioFactoryProvider.getFactory(tipoUsuario);
-            Usuario usuario = usuarioFactory.criarUsuario(nome, sobrenome, email, dataNascimento, cpf, senha);
+            Usuario usuario = usuarioFactory.criarUsuario(null, nome, sobrenome, email, dataNascimento, cpf, senha);
 
             CadastroService.insertUser(usuario);
             JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
