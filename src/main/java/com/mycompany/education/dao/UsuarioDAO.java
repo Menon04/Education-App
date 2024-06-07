@@ -1,6 +1,7 @@
 package com.mycompany.education.dao;
 
 import com.mycompany.education.connection.MySQLConnection;
+import com.mycompany.education.exceptions.CadastroException;
 import com.mycompany.education.factories.UsuarioFactory;
 import com.mycompany.education.factories.UsuarioFactoryProvider;
 import com.mycompany.education.models.Aluno;
@@ -13,7 +14,7 @@ import java.util.List;
 public class UsuarioDAO implements GenericDAO<Usuario, Long> {
 
   @Override
-  public void create(Usuario usuario) {
+  public void create(Usuario usuario) throws CadastroException {
     String tipo = usuario instanceof Aluno ? "Aluno" : "Professor";
     String usuarioSql = "INSERT INTO usuario (nome, sobrenome, email, data_nascimento, cpf, senha, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
@@ -38,7 +39,7 @@ public class UsuarioDAO implements GenericDAO<Usuario, Long> {
         throw new SQLException("Falha ao obter o ID do usuário inserido.");
       }
     } catch (SQLException e) {
-      throw new RuntimeException("Erro ao criar Usuário: " + e.getMessage(), e);
+      throw new CadastroException("Erro ao criar Usuário: " + e.getMessage(), e);
     }
   }
 

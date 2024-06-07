@@ -2,6 +2,7 @@ package com.mycompany.education.views;
 
 import javax.swing.*;
 
+import com.mycompany.education.exceptions.CadastroException;
 import com.mycompany.education.factories.UsuarioFactory;
 import com.mycompany.education.factories.UsuarioFactoryProvider;
 import com.mycompany.education.models.Usuario;
@@ -156,7 +157,7 @@ public class TelaCadastroUsuario extends JPanel {
             JOptionPane.showMessageDialog(this, "Cadastro salvo com sucesso!");
             limparCampos();
             voltarParaTelaInicial();
-        } catch (RuntimeException e) {
+        } catch (CadastroException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao salvar cadastro", JOptionPane.ERROR_MESSAGE);
         }
     }
