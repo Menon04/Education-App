@@ -2,6 +2,10 @@ package com.mycompany.education.views;
 
 import com.mycompany.education.exceptions.LoginException;
 import com.mycompany.education.services.LoginService;
+import com.mycompany.education.models.Aluno;
+import com.mycompany.education.models.Professor;
+import com.mycompany.education.models.Usuario;
+import com.mycompany.education.session.UserSession;
 
 import javax.swing.*;
 import java.awt.*;
@@ -87,10 +91,11 @@ public class TelaInicial extends JFrame {
         String password = new String(inputPassword.getPassword());
 
         try {
-            String userType = LoginService.searchUser(email, password);
-            if (userType != null) {
+            Usuario usuario = LoginService.searchUser(email, password);
+            if (usuario != null) {
+                UserSession userSession = UserSession.getInstance(usuario);
                 JOptionPane.showMessageDialog(this, "Login efetuado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                navigateToDashboard(userType);
+                navigateToDashboard(userSession);
             } else {
                 JOptionPane.showMessageDialog(this, "Email ou senha inválidos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
             }
@@ -99,11 +104,11 @@ public class TelaInicial extends JFrame {
         }
     }
 
-    private void navigateToDashboard(String userType) {
-        if ("Aluno".equals(userType)) {
-            new AlunoDashBoard().setVisible(true);
-        } else if ("Professor".equals(userType)) {
-            new ProfessorDashBoard().setVisible(true);
+    private void navigateToDashboard(UserSession session) {
+        if (session.user() instanceof Aluno) {
+            new AlunoDashBoard(session).setVisible(true);
+        } else if (session.user() instanceof Professor) {
+            new ProfessorDashBoard(session).setVisible(true);
         }
         this.dispose();
     }
