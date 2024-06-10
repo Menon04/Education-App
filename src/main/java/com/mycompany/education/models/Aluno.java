@@ -1,9 +1,10 @@
 package com.mycompany.education.models;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record Aluno(Long id, String nome, String sobrenome, String email, LocalDate dataNascimento, String cpf,
-    String senha) implements Usuario {
+    String senha, List<EnvioTarefa> enviosTarefas) implements Usuario {
 
   public Aluno {
     if (nome == null || nome.isBlank()) {
@@ -23,6 +24,9 @@ public record Aluno(Long id, String nome, String sobrenome, String email, LocalD
     }
     if (senha == null || senha.isBlank()) {
       throw new IllegalArgumentException("Senha não pode ser nula ou vazia");
+    }
+    if (enviosTarefas == null) {
+      throw new IllegalArgumentException("Envios de tarefas não podem ser nulos");
     }
   }
 }

@@ -2,7 +2,7 @@ package com.mycompany.education.models;
 
 import java.util.List;
 
-public record Curso(Long id, String titulo, String descricao, Professor professor, List<Aluno> alunosInscritos, List<Material> materiais, List<Tarefa> tarefas) {
+public record Curso(Long id, String titulo, String descricao, Professor professor, List<Aluno> alunosInscritos, List<Material> materiais, List<Tarefa> tarefas, List<EnvioTarefa> enviosTarefas) {
 
   public Curso {
     if (titulo == null || titulo.isBlank()) {
@@ -22,6 +22,9 @@ public record Curso(Long id, String titulo, String descricao, Professor professo
     }
     if (tarefas == null) {
       throw new IllegalArgumentException("Tarefas não podem ser nulas");
+    }
+    if (enviosTarefas == null) {
+      throw new IllegalArgumentException("Envios de tarefas não podem ser nulos");
     }
   }
 }

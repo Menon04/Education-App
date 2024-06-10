@@ -23,7 +23,7 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
       if (generatedKeys.next()) {
         Long id = generatedKeys.getLong(1);
         curso = new Curso(id, curso.titulo(), curso.descricao(), curso.professor(), curso.alunosInscritos(),
-            curso.materiais(), curso.tarefas());
+            curso.materiais(), curso.tarefas(), curso.enviosTarefas());
       } else {
         throw new SQLException("Falha ao obter o ID gerado para Curso.");
       }
@@ -47,6 +47,7 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
             null, 
             null, 
             null, 
+            null,
             null 
         );
       }
@@ -71,7 +72,8 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
             null, 
             null, 
             null,
-            null 
+            null,
+            null
         );
         cursos.add(curso);
       }
