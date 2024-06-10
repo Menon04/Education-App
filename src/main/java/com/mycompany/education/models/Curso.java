@@ -2,7 +2,7 @@ package com.mycompany.education.models;
 
 import java.util.List;
 
-public record Curso(Long id, String titulo, String descricao, Professor professor, List<Aluno> alunosInscritos, List<Material> materiais, List<Tarefa> tarefas, List<EnvioTarefa> enviosTarefas) {
+public record Curso(Long id, String titulo, String descricao, Usuario professor, List<Usuario> alunosInscritos, List<Material> materiais, List<Tarefa> tarefas, List<EnvioTarefa> enviosTarefas) {
 
   public Curso {
     if (titulo == null || titulo.isBlank()) {
