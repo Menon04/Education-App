@@ -1,17 +1,16 @@
 package com.mycompany.education.views;
 
+import com.mycompany.education.components.ButtonEditor;
+import com.mycompany.education.components.ButtonRenderer;
+import com.mycompany.education.models.Curso;
+import com.mycompany.education.services.CursoService;
+import com.mycompany.education.session.UserSession;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
-
-import com.mycompany.education.session.UserSession;
-import com.mycompany.education.models.Curso;
-import com.mycompany.education.models.Material;
-import com.mycompany.education.models.Tarefa;
-import com.mycompany.education.services.CursoService;
-import com.mycompany.education.models.EnvioTarefa;
-
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.List;
 
@@ -32,6 +31,7 @@ public class AlunoDashBoard extends JFrame {
         this.cursoService = new CursoService();
         initComponents();
         addListeners();
+        loadCourses();
     }
 
     private void initComponents() {
@@ -111,13 +111,30 @@ public class AlunoDashBoard extends JFrame {
 
     private void loadCourses() {
         List<Curso> courses = cursoService.findAllCourses();
-        DefaultTableModel model = new DefaultTableModel(new Object[] { "ID", "Título", "Descrição", "Professor" }, 0);
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Título", "Ação"}, 0);
         for (Curso curso : courses) {
-            model.addRow(new Object[] { curso.id(), curso.titulo(), curso.descricao(), curso.professor().nome() });
+            boolean isInscrito = curso.alunosInscritos().stream().anyMatch(aluno -> aluno.id().equals(userSession.user().id()));
+            String actionText = isInscrito ? "Inscrito" : "Inscrever-se";
+            model.addRow(new Object[]{curso.titulo(), actionText});
         }
         courseTable.setModel(model);
+        TableColumnModel columnModel = courseTable.getColumnModel();
+        columnModel.getColumn(1).setCellRenderer(new ButtonRenderer());
+        columnModel.getColumn(1).setCellEditor(new ButtonEditor(new JCheckBox(), this));
     }
-    
+
+    public void handleButtonAction(int row, int column) {
+        if (column == 1) {
+            Curso curso = cursoService.findAllCourses().get(row);
+            inscreverNoCurso(curso);
+        }
+    }
+
+    private void inscreverNoCurso(Curso curso) {
+        cursoService.inscreverAluno(curso, userSession.user());
+        loadCourses(); 
+    }
+
     private void loadGrades() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'loadGrades'");
@@ -133,15 +150,9 @@ public class AlunoDashBoard extends JFrame {
         throw new UnsupportedOperationException("Unimplemented method 'loadMaterials'");
     }
 
-
     private void logout() {
         userSession.clearSession();
         new TelaInicial().setVisible(true);
         this.dispose();
     }
-
-    // public static void main(String[] args) {
-    // SwingUtilities.invokeLater(() -> new AlunoDashBoard(new
-    // UserSession()).setVisible(true));
-    // }
 }

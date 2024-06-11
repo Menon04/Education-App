@@ -178,34 +178,42 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
 
   @Override
   public List<Curso> findAll() {
-    List<Curso> cursos = new ArrayList<>();
-    String sql = "SELECT * FROM Curso";
-    try (Connection conn = MySQLConnection.getInstance().getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql)) {
-      while (rs.next()) {
-        Long cursoId = rs.getLong("id");
-        Usuario professor = new UsuarioDAO().findById(rs.getLong("professor_id"));
-        List<Usuario> alunos = findAlunosByCursoId(cursoId);
-        List<Material> materiais = findMateriaisByCursoId(cursoId);
-        List<Tarefa> tarefas = findTarefasByCursoId(cursoId);
-        List<EnvioTarefa> enviosTarefas = findEnviosTarefasByCursoId(cursoId);
-
-        Curso curso = new Curso(
-            cursoId,
-            rs.getString("titulo"),
-            rs.getString("descricao"),
-            professor,
-            alunos,
-            materiais,
-            tarefas,
-            enviosTarefas);
-        cursos.add(curso);
+      List<Curso> cursos = new ArrayList<>();
+      String sql = "SELECT * FROM Curso";
+      
+      try (Connection conn = MySQLConnection.getInstance().getConnection();
+           Statement stmt = conn.createStatement();
+           ResultSet rs = stmt.executeQuery(sql)) {
+           
+          // Primeiro, carregue os cursos básicos
+          while (rs.next()) {
+              Long cursoId = rs.getLong("id");
+              Usuario professor = new UsuarioDAO().findById(rs.getLong("professor_id"));
+              Curso curso = new Curso(
+                  cursoId,
+                  rs.getString("titulo"),
+                  rs.getString("descricao"),
+                  professor,
+                  new ArrayList<>(), // Alunos serão carregados depois
+                  new ArrayList<>(), // Materiais serão carregados depois
+                  new ArrayList<>(), // Tarefas serão carregados depois
+                  new ArrayList<>()  // Envios de Tarefas serão carregados depois
+              );
+              cursos.add(curso);
+          }
+          
+          // Agora, para cada curso, carregue os dados relacionados
+          for (Curso curso : cursos) {
+              curso.alunosInscritos().addAll(findAlunosByCursoId(curso.id()));
+              curso.materiais().addAll(findMateriaisByCursoId(curso.id()));
+              curso.tarefas().addAll(findTarefasByCursoId(curso.id()));
+              curso.enviosTarefas().addAll(findEnviosTarefasByCursoId(curso.id()));
+          }
+          
+      } catch (SQLException e) {
+          throw new RuntimeException("Erro ao encontrar todos os Cursos: " + e.getMessage(), e);
       }
-    } catch (SQLException e) {
-      throw new RuntimeException("Erro ao encontrar todos os Cursos: " + e.getMessage(), e);
-    }
-    return cursos;
+      return cursos;
   }
 
   @Override
@@ -231,6 +239,18 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
       stmt.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao deletar Curso: " + e.getMessage(), e);
+    }
+  }
+
+  public void inscreverAluno(Curso curso, Usuario aluno) {
+    String sql = "INSERT INTO Inscricao (curso_id, aluno_id) VALUES (?, ?)";
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, curso.id());
+      stmt.setLong(2, aluno.id());
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao inscrever aluno no curso: " + e.getMessage(), e);
     }
   }
 }

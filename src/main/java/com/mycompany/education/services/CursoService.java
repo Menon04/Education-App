@@ -4,6 +4,7 @@ import com.mycompany.education.dao.CursoDAO;
 import com.mycompany.education.models.Curso;
 import com.mycompany.education.models.Material;
 import com.mycompany.education.models.Tarefa;
+import com.mycompany.education.models.Usuario;
 import com.mycompany.education.models.EnvioTarefa;
 
 import java.util.List;
@@ -30,4 +31,12 @@ public class CursoService {
   public List<EnvioTarefa> findGradesByCursoId(Long cursoId) {
     return cursoDAO.findEnviosTarefasByCursoId(cursoId);
   }
+
+	public void create(Curso curso) {
+		cursoDAO.create(curso);
+	}
+
+	public void inscreverAluno(Curso curso, Usuario user) {
+		cursoDAO.inscreverAluno(curso, user);
+	}
 }
