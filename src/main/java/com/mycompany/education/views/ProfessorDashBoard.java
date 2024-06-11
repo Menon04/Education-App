@@ -1,5 +1,7 @@
 package com.mycompany.education.views;
 
+import com.mycompany.education.components.ButtonEditor;
+import com.mycompany.education.components.ButtonRenderer;
 import com.mycompany.education.dao.CursoDAO;
 import com.mycompany.education.session.UserSession;
 import com.mycompany.education.models.Curso;
@@ -18,12 +20,13 @@ public class ProfessorDashBoard extends JFrame {
     private JTable studentTable;
     private JButton logoutButton;
     private UserSession userSession;
-    private CursoDAO cursoDAO; 
+    private CursoDAO cursoDAO;
+
     public ProfessorDashBoard(UserSession userSession) {
         this.userSession = userSession;
-        this.cursoDAO = new CursoDAO(); 
+        this.cursoDAO = new CursoDAO();
         initComponents();
-        carregarCursos(); 
+        carregarCursos();
     }
 
     private void initComponents() {
@@ -32,6 +35,15 @@ public class ProfessorDashBoard extends JFrame {
 
         JPanel coursePanel = new JPanel(new BorderLayout());
         courseTable = new JTable();
+        courseTable.setModel(new DefaultTableModel(
+                new Object[][] {},
+                new String[] { "ID", "Título", "Descrição", "Professor", "Ações" }));
+
+        courseTable.setRowHeight(30);
+
+        courseTable.getColumn("Ações").setCellRenderer(new ButtonRenderer());
+        courseTable.getColumn("Ações").setCellEditor(new ButtonEditor(courseTable, cursoDAO));
+
         coursePanel.add(new JScrollPane(courseTable), BorderLayout.CENTER);
         JButton createCourseButton = new JButton("Criar Curso");
         createCourseButton.addActionListener(e -> abrirTelaCadastroCurso());
@@ -55,7 +67,7 @@ public class ProfessorDashBoard extends JFrame {
         tabbedPane.add("Alunos", studentPanel);
 
         logoutButton = new JButton("Logout");
-        logoutButton.setPreferredSize(new Dimension(80, 30)); // Tamanho menor
+        logoutButton.setPreferredSize(new Dimension(80, 30));
         logoutButton.addActionListener(e -> logout());
 
         JPanel topPanel = new JPanel(new GridBagLayout());
@@ -102,25 +114,24 @@ public class ProfessorDashBoard extends JFrame {
     }
 
     private void carregarCursos() {
-        List<Curso> cursos = cursoDAO.findAll(); 
-        String[] columns = {"ID", "Título", "Descrição", "Professor"}; 
+        List<Curso> cursos = cursoDAO.findAll();
+        DefaultTableModel tableModel = (DefaultTableModel) courseTable.getModel();
+        tableModel.setRowCount(0);
 
-        // Criar o modelo da tabela
-        DefaultTableModel tableModel = new DefaultTableModel(columns, 0);
-
-        // Adicionar os cursos ao modelo
         for (Curso curso : cursos) {
             String professorNome = curso.professor().nome() + " " + curso.professor().sobrenome();
-            Object[] rowData = {curso.id(), curso.titulo(), curso.descricao(), professorNome};
+            Object[] rowData = { curso.id(), curso.titulo(), curso.descricao(), professorNome, "" };
             tableModel.addRow(rowData);
         }
 
-        // Configurar a tabela com o modelo
-        courseTable.setModel(tableModel);
+        courseTable.getColumn("Ações").setCellRenderer(new ButtonRenderer());
+        courseTable.getColumn("Ações").setCellEditor(new ButtonEditor(courseTable, cursoDAO));
     }
 
     // public static void main(String[] args) {
-    //     UserSession userSession = UserSession.getInstance(); // Crie o objeto UserSession apropriado
-    //     SwingUtilities.invokeLater(() -> new ProfessorDashBoard(userSession).setVisible(true));
+    // UserSession userSession = UserSession.getInstance(); // Crie o objeto
+    // UserSession apropriado
+    // SwingUtilities.invokeLater(() -> new
+    // ProfessorDashBoard(userSession).setVisible(true));
     // }
 }

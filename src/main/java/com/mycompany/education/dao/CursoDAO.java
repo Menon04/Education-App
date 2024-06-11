@@ -11,7 +11,9 @@ import com.mycompany.education.models.Usuario;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CursoDAO implements GenericDAO<Curso, Long> {
 
@@ -178,42 +180,67 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
 
   @Override
   public List<Curso> findAll() {
-      List<Curso> cursos = new ArrayList<>();
-      String sql = "SELECT * FROM Curso";
-      
-      try (Connection conn = MySQLConnection.getInstance().getConnection();
-           Statement stmt = conn.createStatement();
-           ResultSet rs = stmt.executeQuery(sql)) {
-           
-          // Primeiro, carregue os cursos básicos
-          while (rs.next()) {
-              Long cursoId = rs.getLong("id");
-              Usuario professor = new UsuarioDAO().findById(rs.getLong("professor_id"));
-              Curso curso = new Curso(
-                  cursoId,
-                  rs.getString("titulo"),
-                  rs.getString("descricao"),
-                  professor,
-                  new ArrayList<>(), // Alunos serão carregados depois
-                  new ArrayList<>(), // Materiais serão carregados depois
-                  new ArrayList<>(), // Tarefas serão carregados depois
-                  new ArrayList<>()  // Envios de Tarefas serão carregados depois
-              );
-              cursos.add(curso);
-          }
-          
-          // Agora, para cada curso, carregue os dados relacionados
-          for (Curso curso : cursos) {
-              curso.alunosInscritos().addAll(findAlunosByCursoId(curso.id()));
-              curso.materiais().addAll(findMateriaisByCursoId(curso.id()));
-              curso.tarefas().addAll(findTarefasByCursoId(curso.id()));
-              curso.enviosTarefas().addAll(findEnviosTarefasByCursoId(curso.id()));
-          }
-          
-      } catch (SQLException e) {
-          throw new RuntimeException("Erro ao encontrar todos os Cursos: " + e.getMessage(), e);
+    List<Curso> cursos = new ArrayList<>();
+    String sql = "SELECT * FROM Curso";
+    Map<Long, Long> cursoProfessorMap = new HashMap<>();
+    Map<Long, String[]> cursoDataMap = new HashMap<>();
+
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql)) {
+
+      while (rs.next()) {
+        Long cursoId = rs.getLong("id");
+        Long professorId = rs.getLong("professor_id");
+
+        cursoProfessorMap.put(cursoId, professorId);
+        cursoDataMap.put(cursoId, new String[] {
+            rs.getString("titulo"),
+            rs.getString("descricao")
+        });
       }
-      return cursos;
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar todos os Cursos: " + e.getMessage(), e);
+    }
+
+    Map<Long, Usuario> usuarioCache = new HashMap<>();
+
+    for (Map.Entry<Long, String[]> entry : cursoDataMap.entrySet()) {
+      Long cursoId = entry.getKey();
+      String[] data = entry.getValue();
+      Long professorId = cursoProfessorMap.get(cursoId);
+
+      Usuario professor = usuarioCache.computeIfAbsent(professorId, id -> {
+        try {
+          return new UsuarioDAO().findById(id);
+        } catch (RuntimeException e) {
+          throw new RuntimeException("Erro ao carregar professor para o curso: " + cursoId, e);
+        }
+      });
+
+      Curso curso = new Curso(
+          cursoId,
+          data[0],
+          data[1],
+          professor,
+          new ArrayList<>(),
+          new ArrayList<>(),
+          new ArrayList<>(),
+          new ArrayList<>());
+
+      try {
+        curso.alunosInscritos().addAll(findAlunosByCursoId(curso.id()));
+        curso.materiais().addAll(findMateriaisByCursoId(curso.id()));
+        curso.tarefas().addAll(findTarefasByCursoId(curso.id()));
+        curso.enviosTarefas().addAll(findEnviosTarefasByCursoId(curso.id()));
+      } catch (Exception e) {
+        throw new RuntimeException("Erro ao carregar dados relacionados para o curso: " + curso.id(), e);
+      }
+
+      cursos.add(curso);
+    }
+
+    return cursos;
   }
 
   @Override

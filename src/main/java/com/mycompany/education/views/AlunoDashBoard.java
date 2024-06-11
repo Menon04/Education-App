@@ -120,7 +120,7 @@ public class AlunoDashBoard extends JFrame {
         courseTable.setModel(model);
         TableColumnModel columnModel = courseTable.getColumnModel();
         columnModel.getColumn(1).setCellRenderer(new ButtonRenderer());
-        columnModel.getColumn(1).setCellEditor(new ButtonEditor(new JCheckBox(), this));
+        // columnModel.getColumn(1).setCellEditor(new ButtonEditor(new JCheckBox(), this));
     }
 
     public void handleButtonAction(int row, int column) {
