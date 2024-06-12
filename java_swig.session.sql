@@ -1,1 +1,1 @@
-SELECT * FROM curso
+SELECT * FROM inscricao

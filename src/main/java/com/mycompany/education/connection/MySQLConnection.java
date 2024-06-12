@@ -9,7 +9,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class MySQLConnection {
 
   private static MySQLConnection instance;
-  private Connection connection;
   private String url;
   private String username;
   private String password;
@@ -22,14 +21,9 @@ public class MySQLConnection {
       this.password = dotenv.get("DB_PASSWORD");
 
       Class.forName("com.mysql.cj.jdbc.Driver");
-      this.connection = DriverManager.getConnection(url, username, password);
     } catch (ClassNotFoundException e) {
       throw new SQLException(e);
     }
-  }
-
-  public Connection getConnection() {
-    return connection;
   }
 
   public static MySQLConnection getInstance() throws SQLException {
@@ -39,9 +33,11 @@ public class MySQLConnection {
           instance = new MySQLConnection();
         }
       }
-    } else if (instance.getConnection().isClosed()) {
-      instance = new MySQLConnection();
     }
     return instance;
+  }
+
+  public Connection getConnection() throws SQLException {
+    return DriverManager.getConnection(url, username, password);
   }
 }

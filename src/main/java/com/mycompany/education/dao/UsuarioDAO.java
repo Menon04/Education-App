@@ -18,7 +18,7 @@ public class UsuarioDAO implements GenericDAO<Usuario, Long> {
     String tipo = usuario instanceof Aluno ? "Aluno" : "Professor";
     String usuarioSql = "INSERT INTO usuario (nome, sobrenome, email, data_nascimento, cpf, senha, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
-         PreparedStatement usuarioStmt = conn.prepareStatement(usuarioSql, Statement.RETURN_GENERATED_KEYS)) {
+        PreparedStatement usuarioStmt = conn.prepareStatement(usuarioSql, Statement.RETURN_GENERATED_KEYS)) {
 
       conn.setAutoCommit(false);
 
@@ -44,62 +44,67 @@ public class UsuarioDAO implements GenericDAO<Usuario, Long> {
   }
 
   @Override
-    public Usuario findById(Long id) {
-        String sql = "SELECT * FROM usuario WHERE id = ?";
-        try (Connection conn = MySQLConnection.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String tipo = rs.getString("tipo");
-                UsuarioFactory factory = UsuarioFactoryProvider.getFactory(tipo);
-                return factory.criarUsuario(
-                        rs.getLong("id"),
-                        rs.getString("nome"),
-                        rs.getString("sobrenome"),
-                        rs.getString("email"),
-                        rs.getDate("data_nascimento").toLocalDate(),
-                        rs.getString("cpf"),
-                        rs.getString("senha"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao encontrar Usuário: " + e.getMessage(), e);
+  public Usuario findById(Long id) {
+    String sql = "SELECT * FROM usuario WHERE id = ?";
+    Usuario usuario = null;
+
+    try (
+        Connection conn = MySQLConnection.getInstance().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, id);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          String tipo = rs.getString("tipo");
+          UsuarioFactory factory = UsuarioFactoryProvider.getFactory(tipo);
+          usuario = factory.criarUsuario(
+              rs.getLong("id"),
+              rs.getString("nome"),
+              rs.getString("sobrenome"),
+              rs.getString("email"),
+              rs.getDate("data_nascimento").toLocalDate(),
+              rs.getString("cpf"),
+              rs.getString("senha"));
         }
-        return null;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar Usuário: " + e.getMessage(), e);
     }
 
-    @Override
-    public List<Usuario> findAll() {
-        List<Usuario> usuarios = new ArrayList<>();
-        String sql = "SELECT * FROM usuario";
-        try (Connection conn = MySQLConnection.getInstance().getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String tipo = rs.getString("tipo");
-                UsuarioFactory factory = UsuarioFactoryProvider.getFactory(tipo);
-                Usuario usuario = factory.criarUsuario(
-                        rs.getLong("id"),
-                        rs.getString("nome"),
-                        rs.getString("sobrenome"),
-                        rs.getString("email"),
-                        rs.getDate("data_nascimento").toLocalDate(),
-                        rs.getString("cpf"),
-                        rs.getString("senha"));
-                usuarios.add(usuario);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao encontrar todos os Usuários: " + e.getMessage(), e);
-        }
-        return usuarios;
+    return usuario;
+  }
+
+  @Override
+  public List<Usuario> findAll() {
+    List<Usuario> usuarios = new ArrayList<>();
+    String sql = "SELECT * FROM usuario";
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql)) {
+      while (rs.next()) {
+        String tipo = rs.getString("tipo");
+        UsuarioFactory factory = UsuarioFactoryProvider.getFactory(tipo);
+        Usuario usuario = factory.criarUsuario(
+            rs.getLong("id"),
+            rs.getString("nome"),
+            rs.getString("sobrenome"),
+            rs.getString("email"),
+            rs.getDate("data_nascimento").toLocalDate(),
+            rs.getString("cpf"),
+            rs.getString("senha"));
+        usuarios.add(usuario);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar todos os Usuários: " + e.getMessage(), e);
     }
+    return usuarios;
+  }
 
   @Override
   public void update(Usuario usuario) {
     String tipo = usuario instanceof Aluno ? "Aluno" : "Professor";
     String sql = "UPDATE usuario SET nome = ?, sobrenome = ?, email = ?, data_nascimento = ?, cpf = ?, senha = ?, tipo = ? WHERE id = ?";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setString(1, usuario.nome());
       stmt.setString(2, usuario.sobrenome());
       stmt.setString(3, usuario.email());
@@ -118,7 +123,7 @@ public class UsuarioDAO implements GenericDAO<Usuario, Long> {
   public void delete(Usuario usuario) {
     String sql = "DELETE FROM usuario WHERE id = ?";
     try (Connection conn = MySQLConnection.getInstance().getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, usuario.id());
       stmt.executeUpdate();
     } catch (SQLException e) {

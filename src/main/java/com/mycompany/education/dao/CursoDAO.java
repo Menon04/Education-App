@@ -27,13 +27,14 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
       stmt.setLong(3, curso.professor().id());
       stmt.executeUpdate();
 
-      ResultSet generatedKeys = stmt.getGeneratedKeys();
-      if (generatedKeys.next()) {
-        Long id = generatedKeys.getLong(1);
-        curso = new Curso(id, curso.titulo(), curso.descricao(), curso.professor(), curso.alunosInscritos(),
-            curso.materiais(), curso.tarefas(), curso.enviosTarefas());
-      } else {
-        throw new SQLException("Falha ao obter o ID gerado para Curso.");
+      try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+        if (generatedKeys.next()) {
+          Long id = generatedKeys.getLong(1);
+          curso = new Curso(id, curso.titulo(), curso.descricao(), curso.professor(), curso.alunosInscritos(),
+              curso.materiais(), curso.tarefas(), curso.enviosTarefas());
+        } else {
+          throw new SQLException("Falha ao obter o ID gerado para Curso.");
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao criar Curso: " + e.getMessage(), e);
@@ -43,30 +44,41 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
   @Override
   public Curso findById(Long id) {
     String sql = "SELECT * FROM Curso WHERE id = ?";
+    Curso curso = null;
+
     try (Connection conn = MySQLConnection.getInstance().getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
-      ResultSet rs = stmt.executeQuery();
-      if (rs.next()) {
-        Usuario professor = new UsuarioDAO().findById(rs.getLong("professor_id"));
-        List<Usuario> alunos = findAlunosByCursoId(id);
-        List<Material> materiais = findMateriaisByCursoId(id);
-        List<Tarefa> tarefas = findTarefasByCursoId(id);
-        List<EnvioTarefa> enviosTarefas = findEnviosTarefasByCursoId(id);
-        return new Curso(
-            rs.getLong("id"),
-            rs.getString("titulo"),
-            rs.getString("descricao"),
-            professor,
-            alunos,
-            materiais,
-            tarefas,
-            enviosTarefas);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          Long professorId = rs.getLong("professor_id");
+          Usuario professor = new UsuarioDAO().findById(professorId);
+
+          curso = new Curso(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("descricao"),
+              professor,
+              new ArrayList<>(), // alunosInscritos
+              new ArrayList<>(), // materiais
+              new ArrayList<>(), // tarefas
+              new ArrayList<>() // enviosTarefas
+          );
+        }
       }
+
+      if (curso != null) {
+        curso.alunosInscritos().addAll(findAlunosByCursoId(curso.id()));
+        curso.materiais().addAll(findMateriaisByCursoId(curso.id()));
+        curso.tarefas().addAll(findTarefasByCursoId(curso.id()));
+        curso.enviosTarefas().addAll(findEnviosTarefasByCursoId(curso.id()));
+      }
+
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao encontrar Curso: " + e.getMessage(), e);
     }
-    return null;
+
+    return curso;
   }
 
   public List<Usuario> findAlunosByCursoId(Long cursoId) {
@@ -75,17 +87,18 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     try (Connection conn = MySQLConnection.getInstance().getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, cursoId);
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        Usuario aluno = UsuarioFactoryProvider.getFactory("Aluno").criarUsuario(
-            rs.getLong("id"),
-            rs.getString("nome"),
-            rs.getString("sobrenome"),
-            rs.getString("email"),
-            rs.getDate("data_nascimento").toLocalDate(),
-            rs.getString("cpf"),
-            rs.getString("senha"));
-        alunos.add(aluno);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Usuario aluno = UsuarioFactoryProvider.getFactory("Aluno").criarUsuario(
+              rs.getLong("id"),
+              rs.getString("nome"),
+              rs.getString("sobrenome"),
+              rs.getString("email"),
+              rs.getDate("data_nascimento").toLocalDate(),
+              rs.getString("cpf"),
+              rs.getString("senha"));
+          alunos.add(aluno);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao encontrar alunos por curso: " + e.getMessage(), e);
@@ -99,14 +112,15 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     try (Connection conn = MySQLConnection.getInstance().getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, cursoId);
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        Material material = new Material(
-            rs.getLong("id"),
-            rs.getString("titulo"),
-            rs.getString("conteudo"),
-            rs.getDate("data_publicacao").toLocalDate());
-        materiais.add(material);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Material material = new Material(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("conteudo"),
+              rs.getDate("data_publicacao").toLocalDate());
+          materiais.add(material);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao encontrar materiais por curso: " + e.getMessage(), e);
@@ -120,15 +134,16 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     try (Connection conn = MySQLConnection.getInstance().getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, cursoId);
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        Tarefa tarefa = new Tarefa(
-            rs.getLong("id"),
-            rs.getString("titulo"),
-            rs.getString("descricao"),
-            rs.getDate("data_entrega").toLocalDate(),
-            rs.getDate("data_publicacao").toLocalDate());
-        tarefas.add(tarefa);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Tarefa tarefa = new Tarefa(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("descricao"),
+              rs.getDate("data_entrega").toLocalDate(),
+              rs.getDate("data_publicacao").toLocalDate());
+          tarefas.add(tarefa);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao encontrar tarefas por curso: " + e.getMessage(), e);
@@ -145,32 +160,33 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     try (Connection conn = MySQLConnection.getInstance().getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, cursoId);
-      ResultSet rs = stmt.executeQuery();
-      while (rs.next()) {
-        Aluno aluno = (Aluno) UsuarioFactoryProvider.getFactory("Aluno").criarUsuario(
-            rs.getLong("u.id"),
-            rs.getString("u.nome"),
-            rs.getString("u.sobrenome"),
-            rs.getString("u.email"),
-            rs.getDate("u.data_nascimento").toLocalDate(),
-            rs.getString("u.cpf"),
-            rs.getString("u.senha"));
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Aluno aluno = (Aluno) UsuarioFactoryProvider.getFactory("Aluno").criarUsuario(
+              rs.getLong("u.id"),
+              rs.getString("u.nome"),
+              rs.getString("u.sobrenome"),
+              rs.getString("u.email"),
+              rs.getDate("u.data_nascimento").toLocalDate(),
+              rs.getString("u.cpf"),
+              rs.getString("u.senha"));
 
-        Tarefa tarefa = new Tarefa(
-            rs.getLong("t.id"),
-            rs.getString("t.titulo"),
-            rs.getString("t.descricao"),
-            rs.getDate("t.data_entrega").toLocalDate(),
-            rs.getDate("t.data_publicacao").toLocalDate());
+          Tarefa tarefa = new Tarefa(
+              rs.getLong("t.id"),
+              rs.getString("t.titulo"),
+              rs.getString("t.descricao"),
+              rs.getDate("t.data_entrega").toLocalDate(),
+              rs.getDate("t.data_publicacao").toLocalDate());
 
-        EnvioTarefa envioTarefa = new EnvioTarefa(
-            rs.getLong("et.id"),
-            aluno,
-            tarefa,
-            rs.getString("et.resposta"),
-            rs.getDate("et.data_envio").toLocalDate(),
-            rs.getDouble("et.nota"));
-        enviosTarefas.add(envioTarefa);
+          EnvioTarefa envioTarefa = new EnvioTarefa(
+              rs.getLong("et.id"),
+              aluno,
+              tarefa,
+              rs.getString("et.resposta"),
+              rs.getDate("et.data_envio").toLocalDate(),
+              rs.getDouble("et.nota"));
+          enviosTarefas.add(envioTarefa);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao encontrar envios de tarefas por curso: " + e.getMessage(), e);

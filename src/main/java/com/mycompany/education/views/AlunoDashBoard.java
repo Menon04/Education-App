@@ -2,6 +2,8 @@ package com.mycompany.education.views;
 
 import com.mycompany.education.components.ButtonEditor;
 import com.mycompany.education.components.ButtonRenderer;
+import com.mycompany.education.components.CursoButtonEditor;
+import com.mycompany.education.components.CursoButtonRenderer;
 import com.mycompany.education.models.Curso;
 import com.mycompany.education.services.CursoService;
 import com.mycompany.education.session.UserSession;
@@ -110,23 +112,31 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void loadCourses() {
-        List<Curso> courses = cursoService.findAllCourses();
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Título", "Ação"}, 0);
-        for (Curso curso : courses) {
-            boolean isInscrito = curso.alunosInscritos().stream().anyMatch(aluno -> aluno.id().equals(userSession.user().id()));
+        List<Curso> cursos = cursoService.findAllCourses();
+        DefaultTableModel model = new DefaultTableModel(new Object[] { "Título", "Ação" }, 0);
+    
+        for (Curso curso : cursos) {
+            boolean isInscrito = curso.alunosInscritos().stream()
+                    .anyMatch(aluno -> aluno.id().equals(userSession.user().id()));
             String actionText = isInscrito ? "Inscrito" : "Inscrever-se";
-            model.addRow(new Object[]{curso.titulo(), actionText});
+            model.addRow(new Object[] { curso.titulo(), actionText });
         }
+    
         courseTable.setModel(model);
+    
         TableColumnModel columnModel = courseTable.getColumnModel();
-        columnModel.getColumn(1).setCellRenderer(new ButtonRenderer());
-        // columnModel.getColumn(1).setCellEditor(new ButtonEditor(new JCheckBox(), this));
+        columnModel.getColumn(1).setCellRenderer(new CursoButtonRenderer());
+        columnModel.getColumn(1).setCellEditor(new CursoButtonEditor(this));
     }
 
     public void handleButtonAction(int row, int column) {
         if (column == 1) {
             Curso curso = cursoService.findAllCourses().get(row);
-            inscreverNoCurso(curso);
+            if (curso.alunosInscritos().stream().anyMatch(aluno -> aluno.id().equals(userSession.user().id()))) {
+                // Aluno já está inscrito, não faz nada
+            } else {
+                inscreverNoCurso(curso);
+            }
         }
     }
 
