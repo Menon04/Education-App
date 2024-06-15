@@ -8,8 +8,6 @@ import com.mycompany.education.dao.CursoDAO;
 import com.mycompany.education.models.Curso;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -31,24 +29,18 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
         panel.add(editButton);
         panel.add(deleteButton);
 
-        editButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireEditingStopped(); 
-                int row = table.getSelectedRow();
-                Long cursoId = (Long) table.getValueAt(row, 0);
-                editarCurso(cursoId);
-            }
+        editButton.addActionListener(e -> {
+            fireEditingStopped();
+            int row = table.getSelectedRow();
+            Long cursoId = (Long) table.getValueAt(row, 0);
+            editarCurso(cursoId);
         });
 
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireEditingStopped(); 
-                int row = table.getSelectedRow();
-                Long cursoId = (Long) table.getValueAt(row, 0);
-                apagarCurso(cursoId);
-            }
+        deleteButton.addActionListener(e -> {
+            fireEditingStopped();
+            int row = table.getSelectedRow();
+            Long cursoId = (Long) table.getValueAt(row, 0);
+            apagarCurso(cursoId);
         });
     }
 
@@ -67,16 +59,38 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
 
         if (curso != null) {
             JFrame editFrame = new JFrame("Editar Curso");
-            editFrame.setSize(400, 300);
-            editFrame.setLayout(new GridLayout(3, 2));
+            editFrame.setSize(500, 400);
+            editFrame.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+            gbc.fill = GridBagConstraints.HORIZONTAL;
 
-            JTextField tituloField = new JTextField(curso.titulo());
-            JTextField descricaoField = new JTextField(curso.descricao());
+            JTextField tituloField = new JTextField(curso.titulo(), 20);
+            JTextArea descricaoField = new JTextArea(curso.descricao(), 5, 20);
 
-            editFrame.add(new JLabel("Título:"));
-            editFrame.add(tituloField);
-            editFrame.add(new JLabel("Descrição:"));
-            editFrame.add(descricaoField);
+            // Título label
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            editFrame.add(new JLabel("Curso:"), gbc);
+
+            // Título field
+            gbc.gridx = 1;
+            gbc.gridy = 0;
+            gbc.gridwidth = 2;
+            editFrame.add(tituloField, gbc);
+
+            // Descrição label
+            gbc.gridx = 0;
+            gbc.gridy = 1;
+            gbc.gridwidth = 1;
+            editFrame.add(new JLabel("Descrição:"), gbc);
+
+            // Descrição field
+            gbc.gridx = 1;
+            gbc.gridy = 1;
+            gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.BOTH;
+            editFrame.add(new JScrollPane(descricaoField), gbc);
 
             JButton saveButton = new JButton("Salvar");
             AtomicReference<Curso> cursoRef = new AtomicReference<>(curso);
@@ -89,7 +103,13 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
                 carregarCursos();
                 editFrame.dispose();
             });
-            editFrame.add(saveButton);
+
+            // Save button
+            gbc.gridx = 1;
+            gbc.gridy = 2;
+            gbc.gridwidth = 1;
+            gbc.fill = GridBagConstraints.NONE;
+            editFrame.add(saveButton, gbc);
 
             editFrame.setVisible(true);
         }
@@ -109,7 +129,7 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
         List<Curso> cursos = cursoDAO.findAll();
         for (Curso curso : cursos) {
             String professorNome = curso.professor().nome() + " " + curso.professor().sobrenome();
-            model.addRow(new Object[]{curso.id(), curso.titulo(), curso.descricao(), professorNome});
+            model.addRow(new Object[] { curso.id(), curso.titulo(), curso.descricao(), professorNome });
         }
     }
 }

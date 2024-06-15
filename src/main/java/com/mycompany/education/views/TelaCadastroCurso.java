@@ -31,27 +31,56 @@ public class TelaCadastroCurso extends JFrame {
 
     private void initComponents() {
         setTitle("Cadastrar Curso");
-        setSize(400, 300);
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridLayout(5, 1));
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        panel.add(new JLabel("Título:"));
-        tituloField = new JTextField();
-        panel.add(tituloField);
+        // Título label
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(new JLabel("Curso:"), gbc);
 
-        panel.add(new JLabel("Descrição:"));
-        descricaoField = new JTextArea();
-        panel.add(new JScrollPane(descricaoField));
+        // Título field
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        tituloField = new JTextField(20);
+        panel.add(tituloField, gbc);
 
+        // Descrição label
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Descrição:"), gbc);
+
+        // Descrição field
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        descricaoField = new JTextArea(5, 20);
+        panel.add(new JScrollPane(descricaoField), gbc);
+
+        // Botão cadastrar
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.NONE;
         cadastrarButton = new JButton("Cadastrar");
         cadastrarButton.addActionListener(e -> cadastrarCurso());
-        panel.add(cadastrarButton);
+        panel.add(cadastrarButton, gbc);
 
+        // Botão voltar
+        gbc.gridx = 2;
+        gbc.gridy = 2;
         voltarButton = new JButton("Voltar");
         voltarButton.addActionListener(e -> voltar());
-        panel.add(voltarButton);
+        panel.add(voltarButton, gbc);
 
         add(panel);
     }

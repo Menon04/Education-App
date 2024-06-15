@@ -1,7 +1,5 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.components.ButtonEditor;
-import com.mycompany.education.components.ButtonRenderer;
 import com.mycompany.education.components.CursoButtonEditor;
 import com.mycompany.education.components.CursoButtonRenderer;
 import com.mycompany.education.models.Curso;
@@ -113,7 +111,12 @@ public class AlunoDashBoard extends JFrame {
 
     private void loadCourses() {
         List<Curso> cursos = cursoService.findAllCourses();
-        DefaultTableModel model = new DefaultTableModel(new Object[] { "Título", "Ação" }, 0);
+        DefaultTableModel model = new DefaultTableModel(new Object[] { "Curso", "Status" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 1; 
+            }
+        };
     
         for (Curso curso : cursos) {
             boolean isInscrito = curso.alunosInscritos().stream()

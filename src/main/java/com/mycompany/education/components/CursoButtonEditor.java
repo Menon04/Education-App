@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
-import javax.swing.table.TableCellEditor;
 import javax.swing.DefaultCellEditor;
 
 import com.mycompany.education.views.AlunoDashBoard;
@@ -14,14 +13,11 @@ import com.mycompany.education.views.AlunoDashBoard;
 public class CursoButtonEditor extends DefaultCellEditor {
     protected JButton button;
     private String label;
-    private boolean isPushed;
     private int row;
     private int column;
-    private AlunoDashBoard parent;
-
+    
     public CursoButtonEditor(AlunoDashBoard parent) {
         super(new JCheckBox());
-        this.parent = parent;
         button = new JButton();
         button.setOpaque(true);
         button.addActionListener(new ActionListener() {
@@ -45,19 +41,16 @@ public class CursoButtonEditor extends DefaultCellEditor {
         }
         label = (value == null) ? "" : value.toString();
         button.setText(label);
-        isPushed = true;
         return button;
     }
 
     @Override
     public Object getCellEditorValue() {
-        isPushed = false;
         return label;
     }
 
     @Override
     public boolean stopCellEditing() {
-        isPushed = false;
         return super.stopCellEditing();
     }
 
