@@ -6,6 +6,8 @@ import com.mycompany.education.components.AlunoButtonEditor;
 import com.mycompany.education.components.AlunoButtonRenderer;
 import com.mycompany.education.components.ButtonEditor;
 import com.mycompany.education.components.ButtonRenderer;
+import com.mycompany.education.components.MaterialActionButtonEditor;
+import com.mycompany.education.components.MaterialActionButtonRenderer;
 import com.mycompany.education.components.MaterialButtonRenderer;
 import com.mycompany.education.components.MaterialButtonEditor;
 import com.mycompany.education.dao.CursoDAO;
@@ -85,7 +87,7 @@ public class ProfessorDashBoard extends JFrame {
         materialTable.getColumn("Ações").setCellEditor(new ActionButtonEditor(materialTable, materialDAO, "Detalhes"));
         materialPanel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
         JButton publishMaterialButton = new JButton("Publicar Material");
-        // publishMaterialButton.addActionListener(e -> abrirTelaCadastroMaterial());
+        publishMaterialButton.addActionListener(e -> abrirTelaCadastroMaterial());
         materialPanel.add(publishMaterialButton, BorderLayout.SOUTH);
         tabbedPane.add("Materiais", materialPanel);
 
@@ -142,10 +144,10 @@ public class ProfessorDashBoard extends JFrame {
         this.dispose();
     }
 
-    // private void abrirTelaCadastroMaterial() {
-    //     new TelaCadastroMaterial(userSession.user()).setVisible(true);
-    //     this.dispose();
-    // }
+    private void abrirTelaCadastroMaterial() {
+        new TelaCadastroMaterial(userSession.user()).setVisible(true);
+        this.dispose();
+    }
 
     private void abrirTelaAvaliacaoAluno() {
         new TelaAvaliacaoAluno(userSession.user()).setVisible(true);
@@ -183,23 +185,23 @@ public class ProfessorDashBoard extends JFrame {
             tableModel.addRow(rowData);
         }
 
-        materialTable.getColumn("Ações").setCellRenderer(new MaterialButtonRenderer("Detalhes"));
-        materialTable.getColumn("Ações").setCellEditor(new MaterialButtonEditor(materialTable, materialDAO, "Detalhes"));
+        materialTable.getColumn("Ações").setCellRenderer(new MaterialActionButtonRenderer());
+        materialTable.getColumn("Ações").setCellEditor(new MaterialActionButtonEditor(materialTable, materialDAO));
     }
 
-   private void carregarAlunos() {
-    List<Usuario> alunos = usuarioDAO.findAll();
-    DefaultTableModel tableModel = (DefaultTableModel) studentTable.getModel();
-    tableModel.setRowCount(0);
+    private void carregarAlunos() {
+        List<Usuario> alunos = usuarioDAO.findAll();
+        DefaultTableModel tableModel = (DefaultTableModel) studentTable.getModel();
+        tableModel.setRowCount(0);
 
-    for (Usuario aluno : alunos) {
-        if (aluno instanceof Aluno) {
-            Object[] rowData = { aluno.id(), aluno.nome(), aluno.sobrenome(), aluno.email(), "" };
-            tableModel.addRow(rowData);
+        for (Usuario aluno : alunos) {
+            if (aluno instanceof Aluno) {
+                Object[] rowData = { aluno.id(), aluno.nome(), aluno.sobrenome(), aluno.email(), "" };
+                tableModel.addRow(rowData);
+            }
         }
-    }
 
-    studentTable.getColumn("Ações").setCellRenderer(new AlunoButtonRenderer("Avaliar"));
-    studentTable.getColumn("Ações").setCellEditor(new AlunoButtonEditor(studentTable, usuarioDAO, "Avaliar"));
-}
+        studentTable.getColumn("Ações").setCellRenderer(new AlunoButtonRenderer("Avaliar"));
+        studentTable.getColumn("Ações").setCellEditor(new AlunoButtonEditor(studentTable, usuarioDAO, "Avaliar"));
+    }
 }

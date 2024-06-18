@@ -8,30 +8,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MaterialDAO implements GenericDAO<Material, Long> {
+
     @Override
     public void create(Material material) {
-        throw new UnsupportedOperationException(
-                "Use create(Material material, Long cursoId) para criar um material com o cursoId.");
-    }
-
-    public void create(Material material, Long cursoId) {
-        String sql = "INSERT INTO material (titulo, conteudo, data_publicacao, curso_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO material (titulo, conteudo, data_publicacao, professor_id, curso_id) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, material.titulo());
             stmt.setString(2, material.conteudo());
             stmt.setDate(3, Date.valueOf(material.dataPublicacao()));
-            stmt.setLong(4, cursoId);
+            stmt.setLong(4, material.professorId());
+            stmt.setLong(5, material.cursoId());
             stmt.executeUpdate();
 
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                material = new Material(
-                        generatedKeys.getLong(1),
-                        material.titulo(),
-                        material.conteudo(),
-                        material.dataPublicacao());
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    material = new Material(
+                            generatedKeys.getLong(1),
+                            material.titulo(),
+                            material.conteudo(),
+                            material.dataPublicacao(),
+                            material.professorId(),
+                            material.cursoId());
+                } else {
+                    throw new SQLException("Falha ao obter o ID gerado para Material.");
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao criar Material: " + e.getMessage(), e);
@@ -51,7 +53,9 @@ public class MaterialDAO implements GenericDAO<Material, Long> {
                             rs.getLong("id"),
                             rs.getString("titulo"),
                             rs.getString("conteudo"),
-                            rs.getDate("data_publicacao").toLocalDate());
+                            rs.getDate("data_publicacao").toLocalDate(),
+                            rs.getLong("professor_id"),
+                            rs.getLong("curso_id"));
                 }
             }
         } catch (SQLException e) {
@@ -73,7 +77,9 @@ public class MaterialDAO implements GenericDAO<Material, Long> {
                         rs.getLong("id"),
                         rs.getString("titulo"),
                         rs.getString("conteudo"),
-                        rs.getDate("data_publicacao").toLocalDate());
+                        rs.getDate("data_publicacao").toLocalDate(),
+                        rs.getLong("professor_id"),
+                        rs.getLong("curso_id"));
                 materiais.add(material);
             }
         } catch (SQLException e) {
@@ -95,7 +101,9 @@ public class MaterialDAO implements GenericDAO<Material, Long> {
                             rs.getLong("id"),
                             rs.getString("titulo"),
                             rs.getString("conteudo"),
-                            rs.getDate("data_publicacao").toLocalDate());
+                            rs.getDate("data_publicacao").toLocalDate(),
+                            rs.getLong("professor_id"),
+                            rs.getLong("curso_id"));
                     materiais.add(material);
                 }
             }
@@ -107,14 +115,16 @@ public class MaterialDAO implements GenericDAO<Material, Long> {
 
     @Override
     public void update(Material material) {
-        String sql = "UPDATE material SET titulo = ?, conteudo = ?, data_publicacao = ? WHERE id = ?";
+        String sql = "UPDATE material SET titulo = ?, conteudo = ?, data_publicacao = ?, professor_id = ?, curso_id = ? WHERE id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, material.titulo());
             stmt.setString(2, material.conteudo());
             stmt.setDate(3, Date.valueOf(material.dataPublicacao()));
-            stmt.setLong(4, material.id());
+            stmt.setLong(4, material.professorId());
+            stmt.setLong(5, material.cursoId());
+            stmt.setLong(6, material.id());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar Material: " + e.getMessage(), e);

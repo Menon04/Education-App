@@ -2,18 +2,10 @@ package com.mycompany.education.dao;
 
 import com.mycompany.education.connection.MySQLConnection;
 import com.mycompany.education.factories.UsuarioFactoryProvider;
-import com.mycompany.education.models.Aluno;
-import com.mycompany.education.models.Curso;
-import com.mycompany.education.models.EnvioTarefa;
-import com.mycompany.education.models.Material;
-import com.mycompany.education.models.Tarefa;
-import com.mycompany.education.models.Usuario;
+import com.mycompany.education.models.*;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CursoDAO implements GenericDAO<Curso, Long> {
 
@@ -118,7 +110,10 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
               rs.getLong("id"),
               rs.getString("titulo"),
               rs.getString("conteudo"),
-              rs.getDate("data_publicacao").toLocalDate());
+              rs.getDate("data_publicacao").toLocalDate(),
+              rs.getLong("professor_id"),
+              rs.getLong("curso_id") // Adicionando cursoId
+          );
           materiais.add(material);
         }
       }
@@ -295,5 +290,65 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     } catch (SQLException e) {
       throw new RuntimeException("Erro ao inscrever aluno no curso: " + e.getMessage(), e);
     }
+  }
+
+  public List<Curso> findCursosByProfessorId(Long professorId) {
+    List<Curso> cursos = new ArrayList<>();
+    String sql = "SELECT * FROM Curso WHERE professor_id = ?";
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, professorId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          Curso curso = new Curso(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("descricao"),
+              new UsuarioDAO().findById(professorId),
+              new ArrayList<>(), // Alunos
+              new ArrayList<>(), // Materiais
+              new ArrayList<>(), // Tarefas
+              new ArrayList<>() // Envios de Tarefas
+          );
+          cursos.add(curso);
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar cursos do professor: " + e.getMessage(), e);
+    }
+    return cursos;
+  }
+
+  public Curso findCursoByTitulo(String titulo) {
+    String sql = "SELECT * FROM Curso WHERE titulo = ?";
+    Curso curso = null;
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, titulo);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          Long professorId = rs.getLong("professor_id");
+          Usuario professor = new UsuarioDAO().findById(professorId);
+          curso = new Curso(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("descricao"),
+              professor,
+              new ArrayList<>(), // alunosInscritos
+              new ArrayList<>(), // materiais
+              new ArrayList<>(), // tarefas
+              new ArrayList<>() // enviosTarefas
+          );
+
+          curso.alunosInscritos().addAll(findAlunosByCursoId(curso.id()));
+          curso.materiais().addAll(findMateriaisByCursoId(curso.id()));
+          curso.tarefas().addAll(findTarefasByCursoId(curso.id()));
+          curso.enviosTarefas().addAll(findEnviosTarefasByCursoId(curso.id()));
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar Curso pelo título: " + e.getMessage(), e);
+    }
+    return curso;
   }
 }
