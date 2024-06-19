@@ -1,15 +1,15 @@
-package com.mycompany.education.components;
+package com.mycompany.education.components.professor;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-public class ButtonRenderer extends JPanel implements TableCellRenderer {
+public class CursoButtonRenderer extends JPanel implements TableCellRenderer {
   private JButton editButton;
   private JButton deleteButton;
 
-  public ButtonRenderer() {
+  public CursoButtonRenderer() {
     setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
     editButton = new JButton("Editar");
     deleteButton = new JButton("Apagar");

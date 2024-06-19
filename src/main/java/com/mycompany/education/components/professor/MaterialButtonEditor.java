@@ -1,4 +1,4 @@
-package com.mycompany.education.components;
+package com.mycompany.education.components.professor;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,14 +10,14 @@ import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MaterialActionButtonEditor extends AbstractCellEditor implements TableCellEditor {
+public class MaterialButtonEditor extends AbstractCellEditor implements TableCellEditor {
     private JPanel panel;
     private JButton editButton;
     private JButton deleteButton;
     private JTable table;
     private MaterialDAO materialDAO;
 
-    public MaterialActionButtonEditor(JTable table, MaterialDAO materialDAO) {
+    public MaterialButtonEditor(JTable table, MaterialDAO materialDAO) {
         this.table = table;
         this.materialDAO = materialDAO;
 

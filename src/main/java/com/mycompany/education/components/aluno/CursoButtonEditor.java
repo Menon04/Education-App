@@ -1,4 +1,4 @@
-package com.mycompany.education.components;
+package com.mycompany.education.components.aluno;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

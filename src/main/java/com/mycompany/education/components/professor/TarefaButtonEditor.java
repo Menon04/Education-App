@@ -1,4 +1,4 @@
-package com.mycompany.education.components;
+package com.mycompany.education.components.professor;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.mycompany.education.dao.TarefaDAO;
 import com.mycompany.education.models.Tarefa;
 
-public class TarefaActionButtonEditor extends AbstractCellEditor implements TableCellEditor {
+public class TarefaButtonEditor extends AbstractCellEditor implements TableCellEditor {
     private JPanel panel;
     private JButton editButton;
     private JButton deleteButton;
@@ -21,7 +21,7 @@ public class TarefaActionButtonEditor extends AbstractCellEditor implements Tabl
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public TarefaActionButtonEditor(JTable table, TarefaDAO tarefaDAO) {
+    public TarefaButtonEditor(JTable table, TarefaDAO tarefaDAO) {
         this.tarefaDAO = tarefaDAO;
 
         panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));

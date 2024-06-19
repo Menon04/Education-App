@@ -1,14 +1,14 @@
-package com.mycompany.education.components;
+package com.mycompany.education.components.professor;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-public class MaterialActionButtonRenderer extends JPanel implements TableCellRenderer {
+public class MaterialButtonRenderer extends JPanel implements TableCellRenderer {
     private JButton editButton;
     private JButton deleteButton;
 
-    public MaterialActionButtonRenderer() {
+    public MaterialButtonRenderer() {
         setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));  // Use FlowLayout to layout buttons horizontally
         editButton = new JButton("Editar");
         deleteButton = new JButton("Apagar");
