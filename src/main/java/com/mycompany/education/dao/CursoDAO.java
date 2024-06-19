@@ -112,7 +112,7 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
               rs.getString("conteudo"),
               rs.getDate("data_publicacao").toLocalDate(),
               rs.getLong("professor_id"),
-              rs.getLong("curso_id") // Adicionando cursoId
+              rs.getLong("curso_id") 
           );
           materiais.add(material);
         }
@@ -135,8 +135,10 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
               rs.getLong("id"),
               rs.getString("titulo"),
               rs.getString("descricao"),
+              rs.getDouble("nota"),
               rs.getDate("data_entrega").toLocalDate(),
-              rs.getDate("data_publicacao").toLocalDate());
+              rs.getDate("data_publicacao").toLocalDate(),
+              rs.getLong("curso_id"));
           tarefas.add(tarefa);
         }
       }
@@ -170,8 +172,10 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
               rs.getLong("t.id"),
               rs.getString("t.titulo"),
               rs.getString("t.descricao"),
+              rs.getDouble("t.nota"),
               rs.getDate("t.data_entrega").toLocalDate(),
-              rs.getDate("t.data_publicacao").toLocalDate());
+              rs.getDate("t.data_publicacao").toLocalDate(),
+              rs.getLong("curso_id"));
 
           EnvioTarefa envioTarefa = new EnvioTarefa(
               rs.getLong("et.id"),

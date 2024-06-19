@@ -15,7 +15,7 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
     public void create(EnvioTarefa envioTarefa) {
         String sql = "INSERT INTO enviotarefa (aluno_id, tarefa_id, resposta, data_envio, nota) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setLong(1, envioTarefa.aluno().id());
             stmt.setLong(2, envioTarefa.tarefa().id());
@@ -28,15 +28,18 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
             }
             stmt.executeUpdate();
 
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                envioTarefa = new EnvioTarefa(
-                        generatedKeys.getLong(1),
-                        envioTarefa.aluno(),
-                        envioTarefa.tarefa(),
-                        envioTarefa.resposta(),
-                        envioTarefa.dataEnvio(),
-                        envioTarefa.nota());
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    envioTarefa = new EnvioTarefa(
+                            generatedKeys.getLong(1),
+                            envioTarefa.aluno(),
+                            envioTarefa.tarefa(),
+                            envioTarefa.resposta(),
+                            envioTarefa.dataEnvio(),
+                            envioTarefa.nota());
+                } else {
+                    throw new SQLException("Falha ao obter o ID gerado para Envio de Tarefa.");
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao criar Envio de Tarefa: " + e.getMessage(), e);
@@ -48,15 +51,16 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         String sql = "SELECT et.*, " +
                 "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
                 "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
+                "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
-                "t.descricao AS tarefa_descricao, t.data_entrega AS tarefa_data_entrega, " +
-                "t.data_publicacao AS tarefa_data_publicacao " +
+                "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id " +
                 "WHERE et.id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -68,15 +72,18 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                             rs.getString("aluno_email"),
                             rs.getDate("aluno_data_nascimento").toLocalDate(),
                             rs.getString("aluno_cpf"),
-                            rs.getString("senha"), // Assuming senha is available in the query result
-                            new ArrayList<>() // Assuming an empty list for simplification
+                            rs.getString("aluno_senha"),
+                            new ArrayList<>()
                     );
                     Tarefa tarefa = new Tarefa(
                             rs.getLong("tarefa_id"),
                             rs.getString("tarefa_titulo"),
                             rs.getString("tarefa_descricao"),
+                            rs.getDouble("tarefa_nota"),
                             rs.getDate("tarefa_data_entrega").toLocalDate(),
-                            rs.getDate("tarefa_data_publicacao").toLocalDate());
+                            rs.getDate("tarefa_data_publicacao").toLocalDate(),
+                            rs.getLong("tarefa_curso_id")
+                    );
                     return new EnvioTarefa(
                             rs.getLong("id"),
                             aluno,
@@ -98,15 +105,16 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         String sql = "SELECT et.*, " +
                 "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
                 "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
+                "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
-                "t.descricao AS tarefa_descricao, t.data_entrega AS tarefa_data_entrega, " +
-                "t.data_publicacao AS tarefa_data_publicacao " +
+                "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 Aluno aluno = new Aluno(
@@ -116,22 +124,26 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                         rs.getString("aluno_email"),
                         rs.getDate("aluno_data_nascimento").toLocalDate(),
                         rs.getString("aluno_cpf"),
-                        rs.getString("senha"), // Assuming senha is available in the query result
-                        new ArrayList<>() // Assuming an empty list for simplification
+                        rs.getString("aluno_senha"),
+                        new ArrayList<>()
                 );
                 Tarefa tarefa = new Tarefa(
                         rs.getLong("tarefa_id"),
                         rs.getString("tarefa_titulo"),
                         rs.getString("tarefa_descricao"),
+                        rs.getDouble("tarefa_nota"),
                         rs.getDate("tarefa_data_entrega").toLocalDate(),
-                        rs.getDate("tarefa_data_publicacao").toLocalDate());
+                        rs.getDate("tarefa_data_publicacao").toLocalDate(),
+                        rs.getLong("tarefa_curso_id")
+                );
                 EnvioTarefa envio = new EnvioTarefa(
                         rs.getLong("id"),
                         aluno,
                         tarefa,
                         rs.getString("resposta"),
                         rs.getDate("data_envio").toLocalDate(),
-                        rs.getDouble("nota"));
+                        rs.getDouble("nota")
+                );
                 envios.add(envio);
             }
         } catch (SQLException e) {
@@ -145,15 +157,16 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         String sql = "SELECT et.*, " +
                 "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
                 "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
+                "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
-                "t.descricao AS tarefa_descricao, t.data_entrega AS tarefa_data_entrega, " +
-                "t.data_publicacao AS tarefa_data_publicacao " +
+                "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id " +
                 "WHERE et.aluno_id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, alunoId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -165,15 +178,18 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                             rs.getString("aluno_email"),
                             rs.getDate("aluno_data_nascimento").toLocalDate(),
                             rs.getString("aluno_cpf"),
-                            rs.getString("senha"), // Assuming senha is available in the query result
-                            new ArrayList<>() // Assuming an empty list for simplification
+                            rs.getString("aluno_senha"),
+                            new ArrayList<>()
                     );
                     Tarefa tarefa = new Tarefa(
                             rs.getLong("tarefa_id"),
                             rs.getString("tarefa_titulo"),
                             rs.getString("tarefa_descricao"),
+                            rs.getDouble("tarefa_nota"),
                             rs.getDate("tarefa_data_entrega").toLocalDate(),
-                            rs.getDate("tarefa_data_publicacao").toLocalDate());
+                            rs.getDate("tarefa_data_publicacao").toLocalDate(),
+                            rs.getLong("tarefa_curso_id")
+                    );
                     EnvioTarefa envio = new EnvioTarefa(
                             rs.getLong("id"),
                             aluno,
@@ -194,7 +210,7 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
     public void update(EnvioTarefa envioTarefa) {
         String sql = "UPDATE enviotarefa SET resposta = ?, data_envio = ?, nota = ? WHERE id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, envioTarefa.resposta());
             stmt.setDate(2, Date.valueOf(envioTarefa.dataEnvio()));
@@ -214,7 +230,7 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
     public void delete(EnvioTarefa envioTarefa) {
         String sql = "DELETE FROM enviotarefa WHERE id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, envioTarefa.id());
             stmt.executeUpdate();
@@ -228,15 +244,16 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         String sql = "SELECT et.*, " +
                 "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
                 "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
+                "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
-                "t.descricao AS tarefa_descricao, t.data_entrega AS tarefa_data_entrega, " +
-                "t.data_publicacao AS tarefa_data_publicacao " +
+                "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id " +
                 "WHERE et.tarefa_id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -248,15 +265,18 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                             rs.getString("aluno_email"),
                             rs.getDate("aluno_data_nascimento").toLocalDate(),
                             rs.getString("aluno_cpf"),
-                            rs.getString("senha"), // Assuming senha is available in the query result
-                            new ArrayList<>() // Assuming an empty list for simplification
+                            rs.getString("aluno_senha"),
+                            new ArrayList<>()
                     );
                     Tarefa tarefa = new Tarefa(
                             rs.getLong("tarefa_id"),
                             rs.getString("tarefa_titulo"),
                             rs.getString("tarefa_descricao"),
+                            rs.getDouble("tarefa_nota"),
                             rs.getDate("tarefa_data_entrega").toLocalDate(),
-                            rs.getDate("tarefa_data_publicacao").toLocalDate());
+                            rs.getDate("tarefa_data_publicacao").toLocalDate(),
+                            rs.getLong("tarefa_curso_id")
+                    );
                     EnvioTarefa envio = new EnvioTarefa(
                             rs.getLong("id"),
                             aluno,

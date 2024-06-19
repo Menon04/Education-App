@@ -1,22 +1,8 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.components.ActionButtonEditor;
-import com.mycompany.education.components.ActionButtonRenderer;
-import com.mycompany.education.components.AlunoButtonEditor;
-import com.mycompany.education.components.AlunoButtonRenderer;
-import com.mycompany.education.components.ButtonEditor;
-import com.mycompany.education.components.ButtonRenderer;
-import com.mycompany.education.components.MaterialActionButtonEditor;
-import com.mycompany.education.components.MaterialActionButtonRenderer;
-import com.mycompany.education.components.MaterialButtonRenderer;
-import com.mycompany.education.components.MaterialButtonEditor;
-import com.mycompany.education.dao.CursoDAO;
-import com.mycompany.education.dao.MaterialDAO;
-import com.mycompany.education.dao.UsuarioDAO;
-import com.mycompany.education.models.Aluno;
-import com.mycompany.education.models.Curso;
-import com.mycompany.education.models.Material;
-import com.mycompany.education.models.Usuario;
+import com.mycompany.education.components.*;
+import com.mycompany.education.dao.*;
+import com.mycompany.education.models.*;
 import com.mycompany.education.session.UserSession;
 
 import javax.swing.*;
@@ -30,28 +16,31 @@ public class ProfessorDashBoard extends JFrame {
     private JTable courseTable;
     private JTable materialTable;
     private JTable studentTable;
+    private JTable taskTable;
     private JButton logoutButton;
     private UserSession userSession;
     private CursoDAO cursoDAO;
     private MaterialDAO materialDAO;
     private UsuarioDAO usuarioDAO;
+    private TarefaDAO tarefaDAO;
 
     public ProfessorDashBoard(UserSession userSession) {
         this.userSession = userSession;
         this.cursoDAO = new CursoDAO();
         this.materialDAO = new MaterialDAO();
         this.usuarioDAO = new UsuarioDAO();
+        this.tarefaDAO = new TarefaDAO();
         initComponents();
         carregarCursos();
         carregarMateriais();
         carregarAlunos();
+        carregarTarefas();
     }
 
     private void initComponents() {
         mainPanel = new JPanel(new BorderLayout());
         tabbedPane = new JTabbedPane();
 
-        // Painel de cursos
         JPanel coursePanel = new JPanel(new BorderLayout());
         courseTable = new JTable();
         courseTable.setModel(new DefaultTableModel(
@@ -63,15 +52,12 @@ public class ProfessorDashBoard extends JFrame {
             }
         });
         courseTable.setRowHeight(30);
-        courseTable.getColumn("Ações").setCellRenderer(new ActionButtonRenderer("Detalhes"));
-        courseTable.getColumn("Ações").setCellEditor(new ActionButtonEditor(courseTable, cursoDAO, "Detalhes"));
         coursePanel.add(new JScrollPane(courseTable), BorderLayout.CENTER);
         JButton createCourseButton = new JButton("Criar Curso");
         createCourseButton.addActionListener(e -> abrirTelaCadastroCurso());
         coursePanel.add(createCourseButton, BorderLayout.SOUTH);
         tabbedPane.add("Cursos", coursePanel);
 
-        // Painel de materiais
         JPanel materialPanel = new JPanel(new BorderLayout());
         materialTable = new JTable();
         materialTable.setModel(new DefaultTableModel(
@@ -83,15 +69,12 @@ public class ProfessorDashBoard extends JFrame {
             }
         });
         materialTable.setRowHeight(30);
-        materialTable.getColumn("Ações").setCellRenderer(new ActionButtonRenderer("Detalhes"));
-        materialTable.getColumn("Ações").setCellEditor(new ActionButtonEditor(materialTable, materialDAO, "Detalhes"));
         materialPanel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
         JButton publishMaterialButton = new JButton("Publicar Material");
         publishMaterialButton.addActionListener(e -> abrirTelaCadastroMaterial());
         materialPanel.add(publishMaterialButton, BorderLayout.SOUTH);
         tabbedPane.add("Materiais", materialPanel);
 
-        // Painel de alunos
         JPanel studentPanel = new JPanel(new BorderLayout());
         studentTable = new JTable();
         studentTable.setModel(new DefaultTableModel(
@@ -103,13 +86,25 @@ public class ProfessorDashBoard extends JFrame {
             }
         });
         studentTable.setRowHeight(30);
-        studentTable.getColumn("Ações").setCellRenderer(new ActionButtonRenderer("Avaliar"));
-        studentTable.getColumn("Ações").setCellEditor(new ActionButtonEditor(studentTable, usuarioDAO, "Avaliar"));
         studentPanel.add(new JScrollPane(studentTable), BorderLayout.CENTER);
-        JButton evaluateStudentButton = new JButton("Avaliar Aluno");
-        evaluateStudentButton.addActionListener(e -> abrirTelaAvaliacaoAluno());
-        studentPanel.add(evaluateStudentButton, BorderLayout.SOUTH);
-        tabbedPane.add("Alunos", studentPanel);
+        tabbedPane.add("Avaliar Alunos", studentPanel);
+
+        JPanel taskPanel = new JPanel(new BorderLayout());
+        taskTable = new JTable();
+        taskTable.setModel(new DefaultTableModel(
+                new Object[][] {},
+                new String[] { "ID", "Tarefa", "Descrição", "Nota", "Data de Entrega", "Data de Publicação", "Curso", "Ações" }) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 7;
+            }
+        });
+        taskTable.setRowHeight(30);
+        taskPanel.add(new JScrollPane(taskTable), BorderLayout.CENTER);
+        JButton createTaskButton = new JButton("Criar Tarefa");
+        createTaskButton.addActionListener(e -> abrirTelaCadastroTarefa());
+        taskPanel.add(createTaskButton, BorderLayout.SOUTH);
+        tabbedPane.add("Tarefas", taskPanel);
 
         logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(80, 30));
@@ -149,8 +144,8 @@ public class ProfessorDashBoard extends JFrame {
         this.dispose();
     }
 
-    private void abrirTelaAvaliacaoAluno() {
-        new TelaAvaliacaoAluno(userSession.user()).setVisible(true);
+    private void abrirTelaCadastroTarefa() {
+        new TelaCadastroTarefa(userSession).setVisible(true);
         this.dispose();
     }
 
@@ -203,5 +198,31 @@ public class ProfessorDashBoard extends JFrame {
 
         studentTable.getColumn("Ações").setCellRenderer(new AlunoButtonRenderer("Avaliar"));
         studentTable.getColumn("Ações").setCellEditor(new AlunoButtonEditor(studentTable, usuarioDAO, "Avaliar"));
+    }
+
+    private void carregarTarefas() {
+        List<Tarefa> tarefas = tarefaDAO.findAll();
+        DefaultTableModel tableModel = (DefaultTableModel) taskTable.getModel();
+        tableModel.setRowCount(0);
+
+        for (Tarefa tarefa : tarefas) {
+            Curso curso = cursoDAO.findById(tarefa.cursoId());
+            String courseName = curso != null ? curso.titulo() : "Desconhecido";
+
+            Object[] rowData = {
+                    tarefa.id(),
+                    tarefa.titulo(),
+                    tarefa.descricao(),
+                    tarefa.nota(),
+                    tarefa.dataEntrega(),
+                    tarefa.dataPublicacao(),
+                    courseName,
+                    ""  // Placeholder for "Ações" column
+            };
+            tableModel.addRow(rowData);
+        }
+
+        taskTable.getColumn("Ações").setCellRenderer(new TarefaActionButtonRenderer());
+        taskTable.getColumn("Ações").setCellEditor(new TarefaActionButtonEditor(taskTable, tarefaDAO));
     }
 }
