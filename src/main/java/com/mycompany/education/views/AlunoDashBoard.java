@@ -1,7 +1,6 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.components.aluno.CursoButtonEditor;
-import com.mycompany.education.components.aluno.CursoButtonRenderer;
+import com.mycompany.education.components.aluno.*;
 import com.mycompany.education.models.Curso;
 import com.mycompany.education.services.CursoService;
 import com.mycompany.education.session.UserSession;

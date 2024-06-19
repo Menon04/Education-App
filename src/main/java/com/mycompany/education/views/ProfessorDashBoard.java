@@ -1,14 +1,6 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.components.*;
-import com.mycompany.education.components.professor.AvaliarAlunoButtonEditor;
-import com.mycompany.education.components.professor.AvaliarAlunoButtonRenderer;
-import com.mycompany.education.components.professor.CursoButtonEditor;
-import com.mycompany.education.components.professor.CursoButtonRenderer;
-import com.mycompany.education.components.professor.MaterialButtonEditor;
-import com.mycompany.education.components.professor.MaterialButtonRenderer;
-import com.mycompany.education.components.professor.TarefaButtonEditor;
-import com.mycompany.education.components.professor.TarefaButtonRenderer;
+import com.mycompany.education.components.professor.*;
 import com.mycompany.education.dao.*;
 import com.mycompany.education.models.*;
 import com.mycompany.education.session.UserSession;
