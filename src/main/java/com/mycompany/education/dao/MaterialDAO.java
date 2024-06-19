@@ -143,4 +143,32 @@ public class MaterialDAO implements GenericDAO<Material, Long> {
             throw new RuntimeException("Erro ao deletar Material: " + e.getMessage(), e);
         }
     }
+
+    public List<Material> findAllMaterialsByStudent(Long studentId) {
+        List<Material> materiais = new ArrayList<>();
+        String sql = "SELECT m.* FROM material m "
+                   + "JOIN curso c ON m.curso_id = c.id "
+                   + "JOIN inscricao i ON c.id = i.curso_id "
+                   + "WHERE i.aluno_id = ?";
+        try (Connection conn = MySQLConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, studentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Material material = new Material(
+                            rs.getLong("id"),
+                            rs.getString("titulo"),
+                            rs.getString("conteudo"),
+                            rs.getDate("data_publicacao").toLocalDate(),
+                            rs.getLong("professor_id"),
+                            rs.getLong("curso_id"));
+                    materiais.add(material);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao encontrar materiais do aluno: " + e.getMessage(), e);
+        }
+        return materiais;
+    }
 }

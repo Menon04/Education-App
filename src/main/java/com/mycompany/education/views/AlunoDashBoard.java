@@ -1,8 +1,13 @@
 package com.mycompany.education.views;
 
-import com.mycompany.education.components.aluno.*;
+import com.mycompany.education.components.aluno.CursoButtonEditor;
+import com.mycompany.education.components.aluno.CursoButtonRenderer;
+import com.mycompany.education.dao.CursoDAO;
+import com.mycompany.education.dao.MaterialDAO;
+import com.mycompany.education.dao.UsuarioDAO;
 import com.mycompany.education.models.Curso;
-import com.mycompany.education.services.CursoService;
+import com.mycompany.education.models.Material;
+import com.mycompany.education.models.Usuario;
 import com.mycompany.education.session.UserSession;
 
 import javax.swing.*;
@@ -23,11 +28,15 @@ public class AlunoDashBoard extends JFrame {
     private JTable gradeTable;
     private JButton logoutButton;
     private UserSession userSession;
-    private CursoService cursoService;
+    private CursoDAO cursoDAO;
+    private MaterialDAO materialDAO;
+    private UsuarioDAO usuarioDAO;
 
     public AlunoDashBoard(UserSession userSession) {
         this.userSession = userSession;
-        this.cursoService = new CursoService();
+        this.cursoDAO = new CursoDAO();
+        this.materialDAO = new MaterialDAO();
+        this.usuarioDAO = new UsuarioDAO();
         initComponents();
         addListeners();
         loadCourses();
@@ -109,23 +118,23 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void loadCourses() {
-        List<Curso> cursos = cursoService.findAllCourses();
-        DefaultTableModel model = new DefaultTableModel(new Object[] { "Curso", "Status" }, 0) {
+        List<Curso> cursos = cursoDAO.findAll();
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Curso", "Status"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 1; 
+                return column == 1;
             }
         };
-    
+
         for (Curso curso : cursos) {
             boolean isInscrito = curso.alunosInscritos().stream()
                     .anyMatch(aluno -> aluno.id().equals(userSession.user().id()));
             String actionText = isInscrito ? "Inscrito" : "Inscrever-se";
-            model.addRow(new Object[] { curso.titulo(), actionText });
+            model.addRow(new Object[]{curso.titulo(), actionText});
         }
-    
+
         courseTable.setModel(model);
-    
+
         TableColumnModel columnModel = courseTable.getColumnModel();
         columnModel.getColumn(1).setCellRenderer(new CursoButtonRenderer());
         columnModel.getColumn(1).setCellEditor(new CursoButtonEditor(this));
@@ -133,9 +142,9 @@ public class AlunoDashBoard extends JFrame {
 
     public void handleButtonAction(int row, int column) {
         if (column == 1) {
-            Curso curso = cursoService.findAllCourses().get(row);
+            Curso curso = cursoDAO.findAll().get(row);
             if (curso.alunosInscritos().stream().anyMatch(aluno -> aluno.id().equals(userSession.user().id()))) {
-                // Aluno já está inscrito, não faz nada
+                JOptionPane.showMessageDialog(this, "Você já está inscrito neste curso!");
             } else {
                 inscreverNoCurso(curso);
             }
@@ -143,8 +152,8 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void inscreverNoCurso(Curso curso) {
-        cursoService.inscreverAluno(curso, userSession.user());
-        loadCourses(); 
+        cursoDAO.inscreverAluno(curso, userSession.user());
+        loadCourses();
     }
 
     private void loadGrades() {
@@ -158,8 +167,16 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void loadMaterials() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'loadMaterials'");
+        List<Material> materiais = materialDAO.findAllMaterialsByStudent(userSession.user().id());
+        DefaultTableModel model = new DefaultTableModel(new Object[]{"Curso", "Professor", "Título", "Conteúdo"}, 0);
+
+        for (Material material : materiais) {
+            Curso curso = cursoDAO.findById(material.cursoId());
+            Usuario professor = usuarioDAO.findById(material.professorId());
+            model.addRow(new Object[]{curso.titulo(), professor.nome(), material.titulo(), material.conteudo()});
+        }
+
+        materialTable.setModel(model);
     }
 
     private void logout() {
