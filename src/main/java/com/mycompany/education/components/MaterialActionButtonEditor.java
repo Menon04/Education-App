@@ -21,7 +21,7 @@ public class MaterialActionButtonEditor extends AbstractCellEditor implements Ta
         this.table = table;
         this.materialDAO = materialDAO;
 
-        panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));  // Use FlowLayout to layout buttons horizontally
         editButton = new JButton("Editar");
         deleteButton = new JButton("Apagar");
 
@@ -95,7 +95,7 @@ public class MaterialActionButtonEditor extends AbstractCellEditor implements Ta
             AtomicReference<Material> materialRef = new AtomicReference<>(material);
 
             saveButton.addActionListener(e -> {
-                Material updatedMaterial = new Material(materialRef.get().id(), tituloField.getText(), conteudoField.getText(), 
+                Material updatedMaterial = new Material(materialRef.get().id(), tituloField.getText(), conteudoField.getText(),
                         materialRef.get().dataPublicacao(), materialRef.get().professorId(), materialRef.get().cursoId());
                 materialDAO.update(updatedMaterial);
                 carregarMateriais();

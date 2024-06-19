@@ -62,18 +62,37 @@ public class ProfessorDashBoard extends JFrame {
         materialTable = new JTable();
         materialTable.setModel(new DefaultTableModel(
                 new Object[][] {},
-                new String[] { "ID", "Material", "Descrição", "Ações" }) {
+                new String[] { "ID", "Titulo", "Conteudo", "Nome do Professor", "Nome do Curso", "Data de Publicacao",
+                        "Ações" }) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 3;
+                return column == 6;
             }
         });
-        materialTable.setRowHeight(30);
+        materialTable.setRowHeight(60);
         materialPanel.add(new JScrollPane(materialTable), BorderLayout.CENTER);
         JButton publishMaterialButton = new JButton("Publicar Material");
         publishMaterialButton.addActionListener(e -> abrirTelaCadastroMaterial());
         materialPanel.add(publishMaterialButton, BorderLayout.SOUTH);
         tabbedPane.add("Materiais", materialPanel);
+
+        JPanel taskPanel = new JPanel(new BorderLayout());
+        taskTable = new JTable();
+        taskTable.setModel(new DefaultTableModel(
+                new Object[][] {},
+                new String[] { "ID", "Tarefa", "Descrição", "Nota", "Data de Entrega", "Data de Publicação", "Curso",
+                        "Ações" }) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 7;
+            }
+        });
+        taskTable.setRowHeight(60);
+        taskPanel.add(new JScrollPane(taskTable), BorderLayout.CENTER);
+        JButton createTaskButton = new JButton("Criar Tarefa");
+        createTaskButton.addActionListener(e -> abrirTelaCadastroTarefa());
+        taskPanel.add(createTaskButton, BorderLayout.SOUTH);
+        tabbedPane.add("Tarefas", taskPanel);
 
         JPanel studentPanel = new JPanel(new BorderLayout());
         studentTable = new JTable();
@@ -88,23 +107,6 @@ public class ProfessorDashBoard extends JFrame {
         studentTable.setRowHeight(30);
         studentPanel.add(new JScrollPane(studentTable), BorderLayout.CENTER);
         tabbedPane.add("Avaliar Alunos", studentPanel);
-
-        JPanel taskPanel = new JPanel(new BorderLayout());
-        taskTable = new JTable();
-        taskTable.setModel(new DefaultTableModel(
-                new Object[][] {},
-                new String[] { "ID", "Tarefa", "Descrição", "Nota", "Data de Entrega", "Data de Publicação", "Curso", "Ações" }) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 7;
-            }
-        });
-        taskTable.setRowHeight(30);
-        taskPanel.add(new JScrollPane(taskTable), BorderLayout.CENTER);
-        JButton createTaskButton = new JButton("Criar Tarefa");
-        createTaskButton.addActionListener(e -> abrirTelaCadastroTarefa());
-        taskPanel.add(createTaskButton, BorderLayout.SOUTH);
-        tabbedPane.add("Tarefas", taskPanel);
 
         logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(80, 30));
@@ -176,7 +178,13 @@ public class ProfessorDashBoard extends JFrame {
         tableModel.setRowCount(0);
 
         for (Material material : materiais) {
-            Object[] rowData = { material.id(), material.titulo(), material.conteudo(), "" };
+            Curso curso = cursoDAO.findById(material.cursoId());
+            String courseName = curso != null ? curso.titulo() : "Desconhecido";
+            String professorNome = curso != null ? curso.professor().nome() + " " + curso.professor().sobrenome()
+                    : "Desconhecido";
+
+            Object[] rowData = { material.id(), material.titulo(), material.conteudo(), professorNome, courseName,
+                    material.dataPublicacao(), "" };
             tableModel.addRow(rowData);
         }
 
@@ -217,7 +225,7 @@ public class ProfessorDashBoard extends JFrame {
                     tarefa.dataEntrega(),
                     tarefa.dataPublicacao(),
                     courseName,
-                    ""  // Placeholder for "Ações" column
+                    "" // Placeholder for "Ações" column
             };
             tableModel.addRow(rowData);
         }
@@ -225,4 +233,5 @@ public class ProfessorDashBoard extends JFrame {
         taskTable.getColumn("Ações").setCellRenderer(new TarefaActionButtonRenderer());
         taskTable.getColumn("Ações").setCellEditor(new TarefaActionButtonEditor(taskTable, tarefaDAO));
     }
+
 }

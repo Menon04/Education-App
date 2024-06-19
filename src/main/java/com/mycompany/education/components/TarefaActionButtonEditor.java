@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.mycompany.education.dao.TarefaDAO;
@@ -15,7 +17,9 @@ public class TarefaActionButtonEditor extends AbstractCellEditor implements Tabl
     private JButton deleteButton;
     private JLabel courseNameLabel;
     private TarefaDAO tarefaDAO;
-    private JFrame editorFrame; 
+    private JFrame editorFrame;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public TarefaActionButtonEditor(JTable table, TarefaDAO tarefaDAO) {
         this.tarefaDAO = tarefaDAO;
@@ -61,7 +65,7 @@ public class TarefaActionButtonEditor extends AbstractCellEditor implements Tabl
         Tarefa tarefa = tarefaDAO.findById(tarefaId);
         if (tarefa != null) {
             editorFrame = new JFrame("Editar Tarefa");
-            editorFrame.setSize(500, 400);
+            editorFrame.setSize(500, 500);
             editorFrame.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
@@ -69,6 +73,8 @@ public class TarefaActionButtonEditor extends AbstractCellEditor implements Tabl
 
             JTextField tituloField = new JTextField(tarefa.titulo(), 20);
             JTextArea descricaoField = new JTextArea(tarefa.descricao(), 5, 20);
+            JTextField dataEntregaField = new JTextField(tarefa.dataEntrega().format(DATE_FORMATTER), 10);
+            JTextField notaField = new JTextField(String.valueOf(tarefa.nota()), 5);
 
             gbc.gridx = 0;
             gbc.gridy = 0;
@@ -87,23 +93,49 @@ public class TarefaActionButtonEditor extends AbstractCellEditor implements Tabl
             gbc.gridx = 1;
             gbc.gridy = 1;
             gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.BOTH;
             editorFrame.add(new JScrollPane(descricaoField), gbc);
+
+            gbc.gridx = 0;
+            gbc.gridy = 2;
+            gbc.gridwidth = 1;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            editorFrame.add(new JLabel("Data de Entrega (yyyy-MM-dd):"), gbc);
+
+            gbc.gridx = 1;
+            gbc.gridy = 2;
+            gbc.gridwidth = 2;
+            editorFrame.add(dataEntregaField, gbc);
+
+            gbc.gridx = 0;
+            gbc.gridy = 3;
+            editorFrame.add(new JLabel("Nota:"), gbc);
+
+            gbc.gridx = 1;
+            gbc.gridy = 3;
+            editorFrame.add(notaField, gbc);
 
             JButton saveButton = new JButton("Salvar");
             AtomicReference<Tarefa> tarefaRef = new AtomicReference<>(tarefa);
 
             saveButton.addActionListener(e -> {
-                Tarefa updatedTarefa = new Tarefa(
-                        tarefaRef.get().id(), tituloField.getText(), descricaoField.getText(),
-                        tarefaRef.get().nota(), tarefaRef.get().dataEntrega(), tarefaRef.get().dataPublicacao(),
-                        tarefaRef.get().cursoId());
-                tarefaDAO.update(updatedTarefa);
-                carregarTarefas(table);
-                editorFrame.dispose();
+                try {
+                    LocalDate dataEntrega = LocalDate.parse(dataEntregaField.getText(), DATE_FORMATTER);
+                    Double nota = Double.valueOf(notaField.getText());
+                    Tarefa updatedTarefa = new Tarefa(
+                            tarefaRef.get().id(), tituloField.getText(), descricaoField.getText(),
+                            nota, dataEntrega, tarefaRef.get().dataPublicacao(),
+                            tarefaRef.get().cursoId());
+                    tarefaDAO.update(updatedTarefa);
+                    carregarTarefas(table);
+                    editorFrame.dispose();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(editorFrame, "Erro ao salvar a tarefa: " + ex.getMessage());
+                }
             });
 
             gbc.gridx = 1;
-            gbc.gridy = 2;
+            gbc.gridy = 4;
             gbc.gridwidth = 1;
             editorFrame.add(saveButton, gbc);
 

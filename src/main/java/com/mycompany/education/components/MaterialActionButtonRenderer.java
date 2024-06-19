@@ -9,7 +9,7 @@ public class MaterialActionButtonRenderer extends JPanel implements TableCellRen
     private JButton deleteButton;
 
     public MaterialActionButtonRenderer() {
-        setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));  // Use FlowLayout to layout buttons horizontally
         editButton = new JButton("Editar");
         deleteButton = new JButton("Apagar");
         add(editButton);
@@ -18,6 +18,11 @@ public class MaterialActionButtonRenderer extends JPanel implements TableCellRen
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        if (isSelected) {
+            setBackground(table.getSelectionBackground());
+        } else {
+            setBackground(table.getBackground());
+        }
         return this;
     }
 }
