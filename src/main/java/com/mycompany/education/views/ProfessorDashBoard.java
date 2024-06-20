@@ -200,7 +200,7 @@ public class ProfessorDashBoard extends JFrame {
                     tarefa.id(),
                     tarefa.titulo(),
                     tarefa.nota(),
-                    "" // Placeholder for "Ações" column
+                    ""
             };
             tableModel.addRow(rowData);
         }
@@ -226,7 +226,7 @@ public class ProfessorDashBoard extends JFrame {
                     tarefa.dataEntrega(),
                     tarefa.dataPublicacao(),
                     courseName,
-                    "" // Placeholder for "Ações" column
+                    "" 
             };
             tableModel.addRow(rowData);
         }

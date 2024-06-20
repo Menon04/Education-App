@@ -2,7 +2,7 @@ package com.mycompany.education.models;
 
 import java.time.LocalDate;
 
-public record EnvioTarefa(Long id, Aluno aluno, Tarefa tarefa, String resposta, LocalDate dataEnvio, Double nota) {
+public record EnvioTarefa(Long id, Usuario aluno, Tarefa tarefa, String resposta, LocalDate dataEnvio, Double nota) {
 
   public EnvioTarefa {
     if (aluno == null) {

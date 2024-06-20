@@ -137,4 +137,27 @@ public class TarefaDAO implements GenericDAO<Tarefa, Long> {
     }
     return tarefas;
   }
+
+  public Tarefa findByTitulo(String nomeTarefa) {
+    String sql = "SELECT * FROM Tarefa WHERE titulo = ?";
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, nomeTarefa);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return new Tarefa(
+              rs.getLong("id"),
+              rs.getString("titulo"),
+              rs.getString("descricao"),
+              rs.getDouble("nota"),
+              rs.getDate("data_entrega").toLocalDate(),
+              rs.getDate("data_publicacao").toLocalDate(),
+              rs.getLong("curso_id"));
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao encontrar Tarefa por título: " + e.getMessage(), e);
+    }
+    return null;
+  }
 }

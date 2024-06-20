@@ -2,12 +2,10 @@ package com.mycompany.education.views;
 
 import com.mycompany.education.components.aluno.CursoButtonEditor;
 import com.mycompany.education.components.aluno.CursoButtonRenderer;
-import com.mycompany.education.dao.CursoDAO;
-import com.mycompany.education.dao.MaterialDAO;
-import com.mycompany.education.dao.UsuarioDAO;
-import com.mycompany.education.models.Curso;
-import com.mycompany.education.models.Material;
-import com.mycompany.education.models.Usuario;
+import com.mycompany.education.components.aluno.TarefaButtonEditor;
+import com.mycompany.education.components.aluno.TarefaButtonRenderer;
+import com.mycompany.education.dao.*;
+import com.mycompany.education.models.*;
 import com.mycompany.education.session.UserSession;
 
 import javax.swing.*;
@@ -31,12 +29,16 @@ public class AlunoDashBoard extends JFrame {
     private CursoDAO cursoDAO;
     private MaterialDAO materialDAO;
     private UsuarioDAO usuarioDAO;
+    private TarefaDAO tarefaDAO;
+    private EnvioTarefaDAO envioTarefaDAO;
 
     public AlunoDashBoard(UserSession userSession) {
         this.userSession = userSession;
         this.cursoDAO = new CursoDAO();
         this.materialDAO = new MaterialDAO();
         this.usuarioDAO = new UsuarioDAO();
+        this.tarefaDAO = new TarefaDAO();
+        this.envioTarefaDAO = new EnvioTarefaDAO();
         initComponents();
         addListeners();
         loadCourses();
@@ -119,7 +121,7 @@ public class AlunoDashBoard extends JFrame {
 
     private void loadCourses() {
         List<Curso> cursos = cursoDAO.findAll();
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Curso", "Status"}, 0) {
+        DefaultTableModel model = new DefaultTableModel(new Object[] { "Curso", "Status" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 1;
@@ -130,7 +132,7 @@ public class AlunoDashBoard extends JFrame {
             boolean isInscrito = curso.alunosInscritos().stream()
                     .anyMatch(aluno -> aluno.id().equals(userSession.user().id()));
             String actionText = isInscrito ? "Inscrito" : "Inscrever-se";
-            model.addRow(new Object[]{curso.titulo(), actionText});
+            model.addRow(new Object[] { curso.titulo(), actionText });
         }
 
         courseTable.setModel(model);
@@ -162,21 +164,59 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void loadTasks() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'loadTasks'");
+        List<Curso> cursos = cursoDAO.findAll();
+        DefaultTableModel model = new DefaultTableModel(
+                new Object[] { "Título da Tarefa", "Descrição", "Valor", "Data de Entrega", "Nome do Curso", "Status" },
+                0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 5;
+            }
+        };
+
+        for (Curso curso : cursos) {
+            if (curso.alunosInscritos().stream().anyMatch(aluno -> aluno.id().equals(userSession.user().id()))) {
+                List<Tarefa> tarefas = tarefaDAO.findAllByCurso(curso.id());
+                for (Tarefa tarefa : tarefas) {
+                    String status = "A Fazer";
+                    EnvioTarefa envioTarefa = envioTarefaDAO.findByAlunoAndTarefa(userSession.user().id(), tarefa.id());
+                    if (envioTarefa != null) {
+                        status = "Feito";
+                    }
+                    model.addRow(new Object[] {
+                            tarefa.titulo(),
+                            tarefa.descricao(),
+                            tarefa.nota(),
+                            tarefa.dataEntrega(),
+                            curso.titulo(),
+                            status
+                    });
+                }
+            }
+        }
+
+        taskTable.setModel(model);
+
+        TableColumnModel columnModel = taskTable.getColumnModel();
+        columnModel.getColumn(5).setCellRenderer(new TarefaButtonRenderer());
+        columnModel.getColumn(5).setCellEditor(new TarefaButtonEditor(userSession.user(), taskTable, this));
     }
 
     private void loadMaterials() {
         List<Material> materiais = materialDAO.findAllMaterialsByStudent(userSession.user().id());
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Curso", "Professor", "Título", "Conteúdo"}, 0);
+        DefaultTableModel model = new DefaultTableModel(new Object[] { "Curso", "Professor", "Título", "Conteúdo" }, 0);
 
         for (Material material : materiais) {
             Curso curso = cursoDAO.findById(material.cursoId());
             Usuario professor = usuarioDAO.findById(material.professorId());
-            model.addRow(new Object[]{curso.titulo(), professor.nome(), material.titulo(), material.conteudo()});
+            model.addRow(new Object[] { curso.titulo(), professor.nome(), material.titulo(), material.conteudo() });
         }
 
         materialTable.setModel(model);
+    }
+
+    public void updateTaskTable() {
+        loadTasks();
     }
 
     private void logout() {
