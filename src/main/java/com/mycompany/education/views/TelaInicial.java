@@ -2,6 +2,7 @@ package com.mycompany.education.views;
 
 import com.mycompany.education.exceptions.LoginException;
 import com.mycompany.education.services.LoginService;
+import com.mycompany.education.models.Admin;
 import com.mycompany.education.models.Aluno;
 import com.mycompany.education.models.Professor;
 import com.mycompany.education.models.Usuario;
@@ -109,6 +110,8 @@ public class TelaInicial extends JFrame {
             new AlunoDashBoard(session).setVisible(true);
         } else if (session.user() instanceof Professor) {
             new ProfessorDashBoard(session).setVisible(true);
+        } else if (session.user() instanceof Admin) {
+            new AdminDashBoard(session).setVisible(true);
         }
         this.dispose();
     }

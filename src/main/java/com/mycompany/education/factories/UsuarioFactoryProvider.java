@@ -5,6 +5,7 @@ public class UsuarioFactoryProvider {
         return switch (tipo) {
             case "Aluno" -> new AlunoFactory();
             case "Professor" -> new ProfessorFactory();
+            case "Admin" -> new AdminFactory();
             default -> throw new IllegalArgumentException("Tipo de usuário desconhecido: " + tipo);
         };
     }
