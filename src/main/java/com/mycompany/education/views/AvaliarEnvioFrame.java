@@ -86,8 +86,14 @@ public class AvaliarEnvioFrame extends JFrame {
             if (nota < 0 || nota > notaMaxima) {
                 throw new NumberFormatException("Nota deve estar entre 0 e " + notaMaxima);
             }
-            EnvioTarefa novoEnvio = new EnvioTarefa(envioTarefa.id(), envioTarefa.aluno(), envioTarefa.tarefa(),
-                    envioTarefa.resposta(), envioTarefa.dataEnvio(), nota);
+            EnvioTarefa novoEnvio = new EnvioTarefa(
+                envioTarefa.id(),
+                envioTarefa.aluno(),
+                envioTarefa.tarefa(),
+                envioTarefa.resposta(),
+                envioTarefa.dataEnvio(),
+                nota
+            );
             envioTarefaDAO.update(novoEnvio);
             JOptionPane.showMessageDialog(this, "Avaliação salva com sucesso.");
             dispose();

@@ -6,6 +6,7 @@ import com.mycompany.education.views.AvaliarEnvioFrame;
 
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,14 +38,28 @@ public class AvaliarAlunoButtonEditor extends AbstractCellEditor implements Tabl
     @Override
     public void actionPerformed(ActionEvent e) {
         int row = table.getSelectedRow();
-        Long envioId = (Long) table.getValueAt(row, 0);
+        Long envioId = (Long) table.getValueAt(row, 0); // Assuming the ID is in the first column
         EnvioTarefa envio = envioTarefaDAO.findById(envioId);
 
         if (envio != null) {
-            new AvaliarEnvioFrame(envioTarefaDAO, envio).setVisible(true);
+            AvaliarEnvioFrame avaliarFrame = new AvaliarEnvioFrame(envioTarefaDAO, envio);
+            avaliarFrame.setVisible(true);
+            avaliarFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+                    EnvioTarefa updatedEnvio = envioTarefaDAO.findById(envioId);
+                    updateTableRow(row, updatedEnvio);
+                }
+            });
         } else {
             JOptionPane.showMessageDialog(table, "Nenhum envio encontrado com este ID.");
         }
         fireEditingStopped();
+    }
+
+    private void updateTableRow(int row, EnvioTarefa envio) {
+        table.setValueAt(envio.nota() != null ? envio.nota().toString() : "N/A", row, 4);
+        table.setValueAt(envio.nota() != null ? "Avaliado" : "Avaliar", row, 5);
+        ((DefaultTableModel) table.getModel()).fireTableRowsUpdated(row, row);
     }
 }

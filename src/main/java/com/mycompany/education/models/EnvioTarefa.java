@@ -17,8 +17,5 @@ public record EnvioTarefa(Long id, Usuario aluno, Tarefa tarefa, String resposta
     if (dataEnvio == null) {
       throw new IllegalArgumentException("Data de envio não pode ser nula");
     }
-    if (nota != null && (nota < 0 || nota > 10)) {
-      throw new IllegalArgumentException("Nota deve estar entre 0 e 10");
-    }
   }
 }
