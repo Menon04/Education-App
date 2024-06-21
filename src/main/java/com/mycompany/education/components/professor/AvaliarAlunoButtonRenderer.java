@@ -7,11 +7,13 @@ import java.awt.*;
 public class AvaliarAlunoButtonRenderer extends JButton implements TableCellRenderer {
 
     public AvaliarAlunoButtonRenderer() {
-        setText("Detalhes");
+        setOpaque(true);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        String status = (value != null) ? value.toString() : "Avaliar";
+        setText(status);
         return this;
     }
 }

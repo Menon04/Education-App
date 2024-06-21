@@ -22,12 +22,14 @@ public class ProfessorDashBoard extends JFrame {
     private CursoDAO cursoDAO;
     private MaterialDAO materialDAO;
     private TarefaDAO tarefaDAO;
+    private EnvioTarefaDAO envioTarefaDAO;
 
     public ProfessorDashBoard(UserSession userSession) {
         this.userSession = userSession;
         this.cursoDAO = new CursoDAO();
         this.materialDAO = new MaterialDAO();
         this.tarefaDAO = new TarefaDAO();
+        this.envioTarefaDAO = new EnvioTarefaDAO();
         initComponents();
         carregarCursos();
         carregarMateriais();
@@ -42,8 +44,8 @@ public class ProfessorDashBoard extends JFrame {
         JPanel coursePanel = new JPanel(new BorderLayout());
         courseTable = new JTable();
         courseTable.setModel(new DefaultTableModel(
-                new Object[][] {},
-                new String[] { "ID", "Curso", "Descrição", "Professor", "Ações" }) {
+                new Object[][]{},
+                new String[]{"ID", "Curso", "Descrição", "Professor", "Ações"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 4;
@@ -59,9 +61,9 @@ public class ProfessorDashBoard extends JFrame {
         JPanel materialPanel = new JPanel(new BorderLayout());
         materialTable = new JTable();
         materialTable.setModel(new DefaultTableModel(
-                new Object[][] {},
-                new String[] { "ID", "Titulo", "Conteudo", "Nome do Professor", "Nome do Curso", "Data de Publicacao",
-                        "Ações" }) {
+                new Object[][]{},
+                new String[]{"ID", "Titulo", "Conteudo", "Nome do Professor", "Nome do Curso", "Data de Publicacao",
+                        "Ações"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 6;
@@ -77,9 +79,9 @@ public class ProfessorDashBoard extends JFrame {
         JPanel taskPanel = new JPanel(new BorderLayout());
         taskTable = new JTable();
         taskTable.setModel(new DefaultTableModel(
-                new Object[][] {},
-                new String[] { "ID", "Tarefa", "Descrição", "Nota", "Data de Entrega", "Data de Publicação", "Curso",
-                        "Ações" }) {
+                new Object[][]{},
+                new String[]{"ID", "Tarefa", "Descrição", "Nota", "Data de Entrega", "Data de Publicação", "Curso",
+                        "Ações"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 7;
@@ -95,11 +97,11 @@ public class ProfessorDashBoard extends JFrame {
         JPanel studentPanel = new JPanel(new BorderLayout());
         studentTable = new JTable();
         studentTable.setModel(new DefaultTableModel(
-                new Object[][] {},
-                new String[] { "ID Tarefa", "Nome da Tarefa", "Valor", "Ações" }) {
+                new Object[][]{},
+                new String[]{"ID Tarefa", "Nome da Tarefa", "Valor", "Nome do Aluno", "Nota", "Status"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 3;
+                return column == 5;
             }
         });
         studentTable.setRowHeight(30);
@@ -162,7 +164,7 @@ public class ProfessorDashBoard extends JFrame {
 
         for (Curso curso : cursos) {
             String professorNome = curso.professor().nome() + " " + curso.professor().sobrenome();
-            Object[] rowData = { curso.id(), curso.titulo(), curso.descricao(), professorNome, "" };
+            Object[] rowData = {curso.id(), curso.titulo(), curso.descricao(), professorNome, ""};
             tableModel.addRow(rowData);
         }
 
@@ -181,8 +183,8 @@ public class ProfessorDashBoard extends JFrame {
             String professorNome = curso != null ? curso.professor().nome() + " " + curso.professor().sobrenome()
                     : "Desconhecido";
 
-            Object[] rowData = { material.id(), material.titulo(), material.conteudo(), professorNome, courseName,
-                    material.dataPublicacao(), "" };
+            Object[] rowData = {material.id(), material.titulo(), material.conteudo(), professorNome, courseName,
+                    material.dataPublicacao(), ""};
             tableModel.addRow(rowData);
         }
 
@@ -191,22 +193,25 @@ public class ProfessorDashBoard extends JFrame {
     }
 
     private void carregarAvaliacoes() {
-        List<Tarefa> tarefas = tarefaDAO.findAll();
+        List<EnvioTarefa> envios = envioTarefaDAO.findAll();
         DefaultTableModel tableModel = (DefaultTableModel) studentTable.getModel();
         tableModel.setRowCount(0);
 
-        for (Tarefa tarefa : tarefas) {
+        for (EnvioTarefa envio : envios) {
+            String status = envio.nota() == null ? "Avaliar" : "Avaliado";
             Object[] rowData = {
-                    tarefa.id(),
-                    tarefa.titulo(),
-                    tarefa.nota(),
-                    ""
+                    envio.tarefa().id(),
+                    envio.tarefa().titulo(),
+                    envio.tarefa().nota(),
+                    envio.aluno().nome(),
+                    envio.nota() != null ? envio.nota().toString() : "N/A",
+                    status
             };
             tableModel.addRow(rowData);
         }
 
-        studentTable.getColumn("Ações").setCellRenderer(new AvaliarAlunoButtonRenderer());
-        studentTable.getColumn("Ações").setCellEditor(new AvaliarAlunoButtonEditor(studentTable, new EnvioTarefaDAO()));
+        studentTable.getColumn("Status").setCellRenderer(new AvaliarAlunoButtonRenderer());
+        studentTable.getColumn("Status").setCellEditor(new AvaliarAlunoButtonEditor(studentTable, envioTarefaDAO));
     }
 
     private void carregarTarefas() {
@@ -226,7 +231,7 @@ public class ProfessorDashBoard extends JFrame {
                     tarefa.dataEntrega(),
                     tarefa.dataPublicacao(),
                     courseName,
-                    "" 
+                    ""
             };
             tableModel.addRow(rowData);
         }

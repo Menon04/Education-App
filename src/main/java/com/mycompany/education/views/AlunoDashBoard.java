@@ -159,8 +159,17 @@ public class AlunoDashBoard extends JFrame {
     }
 
     private void loadGrades() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'loadGrades'");
+        List<EnvioTarefa> envios = envioTarefaDAO.findAllByAluno(userSession.user().id());
+        DefaultTableModel model = new DefaultTableModel(
+                new Object[] { "Curso", "Tarefa", "Valor", "Nota" }, 0);
+
+        for (EnvioTarefa envio : envios) {
+            Tarefa tarefa = envio.tarefa();
+            Curso curso = cursoDAO.findById(tarefa.cursoId());
+            model.addRow(new Object[] { curso.titulo(), tarefa.titulo(), tarefa.nota(), envio.nota() });
+        }
+
+        gradeTable.setModel(model);
     }
 
     private void loadTasks() {

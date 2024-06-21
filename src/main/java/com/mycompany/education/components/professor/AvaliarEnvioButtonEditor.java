@@ -10,12 +10,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class AvaliarAlunoButtonEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
+public class AvaliarEnvioButtonEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
     private JButton button;
     private JTable table;
     private EnvioTarefaDAO envioTarefaDAO;
 
-    public AvaliarAlunoButtonEditor(JTable table, EnvioTarefaDAO envioTarefaDAO) {
+    public AvaliarEnvioButtonEditor(JTable table, EnvioTarefaDAO envioTarefaDAO) {
         this.table = table;
         this.envioTarefaDAO = envioTarefaDAO;
         button = new JButton("Avaliar");
@@ -24,8 +24,7 @@ public class AvaliarAlunoButtonEditor extends AbstractCellEditor implements Tabl
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        String status = (value != null) ? value.toString() : "Avaliar";
-        button.setText(status);
+        button.setText((value != null) ? value.toString() : "Avaliar");
         return button;
     }
 
@@ -37,14 +36,8 @@ public class AvaliarAlunoButtonEditor extends AbstractCellEditor implements Tabl
     @Override
     public void actionPerformed(ActionEvent e) {
         int row = table.getSelectedRow();
-        Long envioId = (Long) table.getValueAt(row, 0);
-        EnvioTarefa envio = envioTarefaDAO.findById(envioId);
-
-        if (envio != null) {
-            new AvaliarEnvioFrame(envioTarefaDAO, envio).setVisible(true);
-        } else {
-            JOptionPane.showMessageDialog(table, "Nenhum envio encontrado com este ID.");
-        }
+        EnvioTarefa envio = (EnvioTarefa) table.getValueAt(row, 0);
+        new AvaliarEnvioFrame(envioTarefaDAO, envio).setVisible(true);
         fireEditingStopped();
     }
 }

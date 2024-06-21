@@ -48,20 +48,21 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
 
     @Override
     public EnvioTarefa findById(Long id) {
+        EnvioTarefa envio = null;
         String sql = "SELECT et.*, " +
                 "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
                 "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
                 "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
                 "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
-                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao, " +
+                "t.curso_id AS tarefa_curso_id " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id " +
                 "WHERE et.id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -82,7 +83,7 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                             rs.getDate("tarefa_data_entrega").toLocalDate(),
                             rs.getDate("tarefa_data_publicacao").toLocalDate(),
                             rs.getLong("tarefa_curso_id"));
-                    return new EnvioTarefa(
+                    envio = new EnvioTarefa(
                             rs.getLong("id"),
                             aluno,
                             tarefa,
@@ -92,9 +93,9 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao encontrar Envio de Tarefa: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao encontrar Envio de Tarefa por ID: " + e.getMessage(), e);
         }
-        return null;
+        return envio;
     }
 
     @Override
@@ -106,14 +107,14 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                 "u.senha AS aluno_senha, " +
                 "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
                 "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
-                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao, " +
+                "t.curso_id AS tarefa_curso_id " +
                 "FROM enviotarefa et " +
                 "JOIN usuario u ON et.aluno_id = u.id " +
                 "JOIN tarefa t ON et.tarefa_id = t.id";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Aluno aluno = new Aluno(
                         rs.getLong("aluno_id"),
@@ -142,7 +143,7 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                 envios.add(envio);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao encontrar todos os Envios de Tarefas: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao encontrar Envios de Tarefas: " + e.getMessage(), e);
         }
         return envios;
     }
@@ -162,8 +163,8 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
                 "JOIN tarefa t ON et.tarefa_id = t.id " +
                 "WHERE et.aluno_id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-    
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, alunoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -199,7 +200,6 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         }
         return envios;
     }
-    
 
     @Override
     public void update(EnvioTarefa envioTarefa) {
@@ -335,6 +335,58 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
             throw new RuntimeException("Erro ao encontrar Envio de Tarefa por Aluno e Tarefa: " + e.getMessage(), e);
         }
         return null;
+    }
+
+    public List<EnvioTarefa> findByTarefaId(Long tarefaId) {
+        List<EnvioTarefa> envios = new ArrayList<>();
+        String sql = "SELECT et.*, " +
+                "u.id AS aluno_id, u.nome AS aluno_nome, u.sobrenome AS aluno_sobrenome, " +
+                "u.email AS aluno_email, u.data_nascimento AS aluno_data_nascimento, u.cpf AS aluno_cpf, " +
+                "u.senha AS aluno_senha, " +
+                "t.id AS tarefa_id, t.titulo AS tarefa_titulo, " +
+                "t.descricao AS tarefa_descricao, t.nota AS tarefa_nota, " +
+                "t.data_entrega AS tarefa_data_entrega, t.data_publicacao AS tarefa_data_publicacao, " +
+                "t.curso_id AS tarefa_curso_id " +
+                "FROM enviotarefa et " +
+                "JOIN usuario u ON et.aluno_id = u.id " +
+                "JOIN tarefa t ON et.tarefa_id = t.id " +
+                "WHERE et.tarefa_id = ?";
+        try (Connection conn = MySQLConnection.getInstance().getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, tarefaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Aluno aluno = new Aluno(
+                            rs.getLong("aluno_id"),
+                            rs.getString("aluno_nome"),
+                            rs.getString("aluno_sobrenome"),
+                            rs.getString("aluno_email"),
+                            rs.getDate("aluno_data_nascimento").toLocalDate(),
+                            rs.getString("aluno_cpf"),
+                            rs.getString("aluno_senha"),
+                            new ArrayList<>());
+                    Tarefa tarefa = new Tarefa(
+                            rs.getLong("tarefa_id"),
+                            rs.getString("tarefa_titulo"),
+                            rs.getString("tarefa_descricao"),
+                            rs.getDouble("tarefa_nota"),
+                            rs.getDate("tarefa_data_entrega").toLocalDate(),
+                            rs.getDate("tarefa_data_publicacao").toLocalDate(),
+                            rs.getLong("tarefa_curso_id"));
+                    EnvioTarefa envio = new EnvioTarefa(
+                            rs.getLong("id"),
+                            aluno,
+                            tarefa,
+                            rs.getString("resposta"),
+                            rs.getDate("data_envio").toLocalDate(),
+                            rs.getDouble("nota"));
+                    envios.add(envio);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao encontrar Envios de Tarefas por ID da Tarefa: " + e.getMessage(), e);
+        }
+        return envios;
     }
 
 }
