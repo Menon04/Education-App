@@ -355,4 +355,21 @@ public class CursoDAO implements GenericDAO<Curso, Long> {
     }
     return curso;
   }
+
+  public int countAlunosInscritos(Long cursoId) {
+    String sql = "SELECT COUNT(*) AS total FROM Inscricao WHERE curso_id = ?";
+    try (Connection conn = MySQLConnection.getInstance().getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, cursoId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("total");
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Erro ao contar alunos inscritos: " + e.getMessage(), e);
+    }
+    return 0;
+  }
+
 }

@@ -18,6 +18,7 @@ public class ProfessorDashBoard extends JFrame {
     private JTable studentTable;
     private JTable taskTable;
     private JButton logoutButton;
+    private JButton financeiroButton;
     private UserSession userSession;
     private CursoDAO cursoDAO;
     private MaterialDAO materialDAO;
@@ -112,6 +113,10 @@ public class ProfessorDashBoard extends JFrame {
         logoutButton.setPreferredSize(new Dimension(80, 30));
         logoutButton.addActionListener(e -> logout());
 
+        financeiroButton = new JButton("Financeiro");
+        financeiroButton.setPreferredSize(new Dimension(100, 30));
+        financeiroButton.addActionListener(e -> abrirDashboardFinanceiro());
+
         JPanel topPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -124,6 +129,11 @@ public class ProfessorDashBoard extends JFrame {
         gbc.gridy = 0;
         gbc.weightx = 0;
         topPanel.add(logoutButton, gbc);
+        
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        topPanel.add(financeiroButton, gbc);
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
@@ -148,6 +158,11 @@ public class ProfessorDashBoard extends JFrame {
 
     private void abrirTelaCadastroTarefa() {
         new TelaCadastroTarefa(userSession).setVisible(true);
+        this.dispose();
+    }
+
+    private void abrirDashboardFinanceiro() {
+        new FinanceiroDashBoard(userSession).setVisible(true);
         this.dispose();
     }
 
