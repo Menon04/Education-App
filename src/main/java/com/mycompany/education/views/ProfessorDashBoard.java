@@ -213,7 +213,7 @@ public class ProfessorDashBoard extends JFrame {
         tableModel.setRowCount(0);
 
         for (EnvioTarefa envio : envios) {
-            String status = envio.nota() == null ? "Avaliar" : "Avaliado";
+            String status = envio.nota() == 0 ? "Avaliar" : "Avaliado";
             Object[] rowData = {
                     envio.tarefa().id(),
                     envio.tarefa().titulo(),
