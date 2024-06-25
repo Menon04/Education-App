@@ -5,6 +5,7 @@ import com.mycompany.education.models.Admin;
 import com.mycompany.education.models.Curso;
 import com.mycompany.education.models.Professor;
 import com.mycompany.education.models.Usuario;
+import com.mycompany.education.services.FinanceiroService;
 import com.mycompany.education.session.UserSession;
 
 import javax.swing.*;
@@ -12,15 +13,16 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.Random;
 
 public class FinanceiroDashBoard extends JFrame {
   private UserSession userSession;
   private CursoDAO cursoDAO;
+  private FinanceiroService financeiroService;
 
   public FinanceiroDashBoard(UserSession userSession) {
     this.userSession = userSession;
     this.cursoDAO = new CursoDAO();
+    this.financeiroService = new FinanceiroService();
     initComponents();
   }
 
@@ -45,17 +47,15 @@ public class FinanceiroDashBoard extends JFrame {
     panel.add(scrollPane, BorderLayout.CENTER);
 
     List<Curso> cursos = cursoDAO.findAll();
-    Random random = new Random();
     for (Curso curso : cursos) {
       Long cursoId = curso.id();
       String titulo = curso.titulo();
       Usuario professor = curso.professor();
       String criador = professor.nome() + " " + professor.sobrenome();
       int alunosInscritos = cursoDAO.countAlunosInscritos(cursoId);
-      int mensalidade = 500 + random.nextInt(501);
-      int receitaTotal = alunosInscritos * mensalidade;
+      int receitaTotal = financeiroService.receitaTotal(cursoId);
 
-      tableModel.addRow(new Object[] { cursoId, titulo, criador, alunosInscritos, receitaTotal });
+      tableModel.addRow(new Object[] { cursoId, titulo, criador, alunosInscritos, "R$" + receitaTotal + ",00" });
     }
 
     JButton backButton = new JButton("Voltar");
