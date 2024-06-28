@@ -21,10 +21,10 @@ public class TelaCadastroCurso extends JFrame {
     private JButton cadastrarButton;
     private JButton voltarButton;
     private CursoService cursoService;
-    private Usuario professor;
+    private Usuario usuario;
 
-    public TelaCadastroCurso(Usuario professor) {
-        this.professor = professor;
+    public TelaCadastroCurso(Usuario usuario) {
+        this.usuario = usuario;
         this.cursoService = new CursoService();
         initComponents();
     }
@@ -99,17 +99,27 @@ public class TelaCadastroCurso extends JFrame {
         List<Tarefa> tarefas = new ArrayList<>();
         List<EnvioTarefa> enviosTarefas = new ArrayList<>();
 
-        Curso curso = new Curso(null, titulo, descricao, professor, alunosInscritos, materiais, tarefas, enviosTarefas);
+        Curso curso = new Curso(null, titulo, descricao, usuario, alunosInscritos, materiais, tarefas, enviosTarefas);
         cursoService.create(curso);
 
         JOptionPane.showMessageDialog(this, "Curso cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+
+        if (usuario instanceof Professor) {
+            new ProfessorDashBoard(UserSession.getInstance(usuario)).setVisible(true);
+        } else {
+            new AdminDashBoard(UserSession.getInstance(usuario)).setVisible(true);
+        }
         this.dispose();
-        new ProfessorDashBoard(UserSession.getInstance(professor)).setVisible(true);
     }
 
     private void voltar() {
+        if (usuario instanceof Professor) {
+            new ProfessorDashBoard(UserSession.getInstance(usuario)).setVisible(true);
+        } else {
+            new AdminDashBoard(UserSession.getInstance(usuario)).setVisible(true);
+        }
         this.dispose();
-        new ProfessorDashBoard(UserSession.getInstance(professor)).setVisible(true);
     }
 
     public static void main(String[] args) {

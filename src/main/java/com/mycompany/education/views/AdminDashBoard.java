@@ -36,7 +36,7 @@ public class AdminDashBoard extends JFrame {
         courseTable = new JTable();
         courseTable.setModel(new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"ID", "Curso", "Descrição", "Professor", "Ações"}) {
+                new String[]{"ID", "Curso", "Descrição", "Criador", "Ações"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 4;

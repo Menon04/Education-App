@@ -206,14 +206,9 @@ public class EnvioTarefaDAO implements GenericDAO<EnvioTarefa, Long> {
         String sql = "UPDATE enviotarefa SET resposta = ?, data_envio = ?, nota = ? WHERE id = ?";
         try (Connection conn = MySQLConnection.getInstance().getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, envioTarefa.resposta());
-            stmt.setDate(2, Date.valueOf(envioTarefa.dataEnvio()));
-            if (envioTarefa.nota() != null) {
-                stmt.setDouble(3, envioTarefa.nota());
-            } else {
-                stmt.setNull(3, Types.DOUBLE);
-            }
+            stmt.setDate(2, java.sql.Date.valueOf(envioTarefa.dataEnvio()));
+            stmt.setDouble(3, envioTarefa.nota());
             stmt.setLong(4, envioTarefa.id());
             stmt.executeUpdate();
         } catch (SQLException e) {

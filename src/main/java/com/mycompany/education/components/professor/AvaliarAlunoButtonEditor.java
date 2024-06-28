@@ -38,7 +38,7 @@ public class AvaliarAlunoButtonEditor extends AbstractCellEditor implements Tabl
     @Override
     public void actionPerformed(ActionEvent e) {
         int row = table.getSelectedRow();
-        Long envioId = (Long) table.getValueAt(row, 0); // Assuming the ID is in the first column
+        Long envioId = (Long) table.getValueAt(row, 0);
         EnvioTarefa envio = envioTarefaDAO.findById(envioId);
 
         if (envio != null) {

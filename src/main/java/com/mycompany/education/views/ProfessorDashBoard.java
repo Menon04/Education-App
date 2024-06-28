@@ -46,7 +46,7 @@ public class ProfessorDashBoard extends JFrame {
         courseTable = new JTable();
         courseTable.setModel(new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"ID", "Curso", "Descrição", "Professor", "Ações"}) {
+                new String[]{"ID", "Curso", "Descrição", "Criador", "Ações"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 4;
@@ -99,7 +99,7 @@ public class ProfessorDashBoard extends JFrame {
         studentTable = new JTable();
         studentTable.setModel(new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"ID Tarefa", "Nome da Tarefa", "Valor", "Nome do Aluno", "Nota", "Status"}) {
+                new String[]{"ID Envio", "Nome da Tarefa", "Valor", "Nome do Aluno", "Nota", "Status"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 5;
@@ -215,7 +215,7 @@ public class ProfessorDashBoard extends JFrame {
         for (EnvioTarefa envio : envios) {
             String status = envio.nota() == 0 ? "Avaliar" : "Avaliado";
             Object[] rowData = {
-                    envio.tarefa().id(),
+                    envio.id(),
                     envio.tarefa().titulo(),
                     envio.tarefa().nota(),
                     envio.aluno().nome(),
